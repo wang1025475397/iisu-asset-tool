@@ -19,7 +19,7 @@ resource_datas = [
     ('iisu_theme_light.qss', '.'),  # Light theme
 ]
 
-# Minimal build - assets are distributed alongside the executable by GitHub Actions
+# Minimal build - assets are distributed alongside the exe by GitHub Actions
 a = Analysis(
     ['run_gui.py'],
     pathex=[],
@@ -39,15 +39,7 @@ a = Analysis(
         'imagehash',
         'bs4',
         'tqdm',
-        'aggdraw',  # Required by psd_tools for vector shape rendering
-        'device_asset_dialog',  # Dynamically imported by options_dialog
-        'adb_setup',  # Required by device_asset_dialog
-        'custom_image_tab',  # Dynamically imported by custom_tab
-        'border_generator_tab',  # Dynamically imported by custom_tab
-        'cover_generator_tab',  # Dynamically imported by custom_tab
-        'game_search_dialog',  # Dynamically imported by rom_browser_tab
-        'update_dialog',  # Dynamically imported by ui_app_with_tabs
-        'grid_crop_dialog',  # Dynamically imported by artwork_picker_dialog
+        'aggdraw'  # Required by psd_tools for vector shape rendering
     ] + psd_tools_imports,  # Add all psd_tools submodules
     hookspath=[],
     hooksconfig={},
@@ -66,17 +58,19 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
-# Directory mode (onedir) - more reliable module resolution than single-file mode
 exe = EXE(
     pyz,
     a.scripts,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
     [],
-    exclude_binaries=True,
     name='iiSU_Asset_Tool',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
+    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -84,15 +78,4 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='logo.png' if os.path.exists('logo.png') else None,
-)
-
-coll = COLLECT(
-    exe,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    strip=False,
-    upx=False,
-    upx_exclude=[],
-    name='iiSU_Asset_Tool',
 )
