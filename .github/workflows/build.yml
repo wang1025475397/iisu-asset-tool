@@ -33,21 +33,21 @@ jobs:
       shell: pwsh
       run: |
         # Copy entire PyInstaller output (directory mode: exe + _internal/)
-        Copy-Item -Recurse dist\iiSU_Asset_Tool\* releases\windows\iiSU_Asset_Tool\
-        # Copy external assets alongside the executable
-        Copy-Item -Recurse borders releases\windows\iiSU_Asset_Tool\
-        Copy-Item -Recurse fonts releases\windows\iiSU_Asset_Tool\
-        Copy-Item -Recurse platform_icons releases\windows\iiSU_Asset_Tool\
-        Copy-Item -Recurse fallback_icons releases\windows\iiSU_Asset_Tool\
-        Copy-Item -Recurse templates releases\windows\iiSU_Asset_Tool\
-        Copy-Item -Recurse locales releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force dist\iiSU_Asset_Tool\* releases\windows\iiSU_Asset_Tool\
+        # Copy external assets alongside the executable (override PyInstaller copies if any)
+        Copy-Item -Recurse -Force borders releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force fonts releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force platform_icons releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force fallback_icons releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force templates releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse -Force locales releases\windows\iiSU_Asset_Tool\
         New-Item -ItemType Directory -Force -Path releases\windows\iiSU_Asset_Tool\src
         Copy-Item src\*.png releases\windows\iiSU_Asset_Tool\src\
-        Copy-Item config.yaml releases\windows\iiSU_Asset_Tool\
-        Copy-Item logo.png releases\windows\iiSU_Asset_Tool\
-        Copy-Item audio.mp3 releases\windows\iiSU_Asset_Tool\
-        Copy-Item iisu_theme.qss releases\windows\iiSU_Asset_Tool\
-        Copy-Item iisu_theme_light.qss releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Force config.yaml releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Force logo.png releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Force audio.mp3 releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Force iisu_theme.qss releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Force iisu_theme_light.qss releases\windows\iiSU_Asset_Tool\
         "iiSU Asset Tool - Windows" | Out-File releases\windows\iiSU_Asset_Tool\README.txt
         Compress-Archive -Path releases\windows\iiSU_Asset_Tool -DestinationPath releases\windows\iiSU_Asset_Tool_Windows.zip
 
