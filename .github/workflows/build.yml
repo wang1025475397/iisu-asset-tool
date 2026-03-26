@@ -27,7 +27,7 @@ jobs:
 
     - name: Build Windows executable
       run: |
-        pyinstaller build_windows.spec
+        pyinstaller build_windows.spec --log-level WARN
 
     - name: Package Windows release
       shell: pwsh
@@ -92,7 +92,7 @@ jobs:
 
     - name: Build Linux executable
       run: |
-        pyinstaller build_linux.spec
+        pyinstaller build_linux.spec --log-level WARN
 
     - name: Package Linux release
       run: |
@@ -142,7 +142,7 @@ jobs:
 
     - name: Build macOS app
       run: |
-        pyinstaller build_macos.spec
+        pyinstaller build_macos.spec --log-level WARN
 
     - name: Create app icon (icns)
       run: |

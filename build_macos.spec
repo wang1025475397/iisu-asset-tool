@@ -55,6 +55,13 @@ a = Analysis(
         'tqdm',
         'aggdraw',  # Required by psd_tools for vector shape rendering
         'device_asset_dialog',  # Dynamically imported by options_dialog
+        'adb_setup',  # Required by device_asset_dialog
+        'custom_image_tab',  # Dynamically imported by custom_tab
+        'border_generator_tab',  # Dynamically imported by custom_tab
+        'cover_generator_tab',  # Dynamically imported by custom_tab
+        'game_search_dialog',  # Dynamically imported by rom_browser_tab
+        'update_dialog',  # Dynamically imported by ui_app_with_tabs
+        'grid_crop_dialog',  # Dynamically imported by artwork_picker_dialog
     ] + psd_tools_imports,  # Add all psd_tools submodules
     hookspath=[],
     hooksconfig={},
