@@ -39,6 +39,7 @@ jobs:
         Copy-Item -Recurse platform_icons releases\windows\iiSU_Asset_Tool\
         Copy-Item -Recurse fallback_icons releases\windows\iiSU_Asset_Tool\
         Copy-Item -Recurse templates releases\windows\iiSU_Asset_Tool\
+        Copy-Item -Recurse locales releases\windows\iiSU_Asset_Tool\
         New-Item -ItemType Directory -Force -Path releases\windows\iiSU_Asset_Tool\src
         Copy-Item src\*.png releases\windows\iiSU_Asset_Tool\src\
         Copy-Item config.yaml releases\windows\iiSU_Asset_Tool\
@@ -102,6 +103,7 @@ jobs:
         cp -r platform_icons releases/linux/iiSU_Asset_Tool/
         cp -r fallback_icons releases/linux/iiSU_Asset_Tool/
         cp -r templates releases/linux/iiSU_Asset_Tool/
+        cp -r locales releases/linux/iiSU_Asset_Tool/
         mkdir -p releases/linux/iiSU_Asset_Tool/src
         cp src/*.png releases/linux/iiSU_Asset_Tool/src/
         cp config.yaml releases/linux/iiSU_Asset_Tool/
@@ -219,22 +221,25 @@ jobs:
         # Remove local Java home path that doesn't exist on CI runners
         sed -i '/org.gradle.java.home/d' gradle.properties
 
-    - name: Build Android APK
+    - name: Decode keystore
       working-directory: android
       run: |
+        echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > app/release.keystore
+
+    - name: Build Android APK
+      working-directory: android
+      env:
+        KEYSTORE_PATH: release.keystore
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+      run: |
         chmod +x gradlew
-        ./gradlew assembleRelease || ./gradlew assembleDebug
+        ./gradlew assembleRelease
 
     - name: Rename APK
       run: |
-        # Prefer release APK if it exists, otherwise use debug
-        if [ -f android/app/build/outputs/apk/release/app-release.apk ]; then
-          cp android/app/build/outputs/apk/release/app-release.apk iiSU_Asset_Tool_Android.apk
-        elif [ -f android/app/build/outputs/apk/release/app-release-unsigned.apk ]; then
-          cp android/app/build/outputs/apk/release/app-release-unsigned.apk iiSU_Asset_Tool_Android.apk
-        else
-          cp android/app/build/outputs/apk/debug/app-debug.apk iiSU_Asset_Tool_Android.apk
-        fi
+        cp android/app/build/outputs/apk/release/app-release.apk iiSU_Asset_Tool_Android.apk
 
     - name: Upload Android artifact
       uses: actions/upload-artifact@v4

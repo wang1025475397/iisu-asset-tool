@@ -213,6 +213,7 @@
   "Max games to process per platform (0 = unlimited)": "每个平台最大处理游戏数（0 = 无限制）",
   "Updates": "更新",
   "Check for updates on startup": "启动时检查更新",
+  "Check for Updates Now" : "立即检查更新",
   "Config File": "配置文件",
   "_comment_update_dialog": "=== 更新对话框 ===",
   "Update Available": "有可用更新",

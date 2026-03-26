@@ -18,7 +18,7 @@ from typing import Optional, Callable
 from datetime import datetime, timezone
 
 
-GITHUB_OWNER = "viik4"
+GITHUB_OWNER = "wang1025475397"
 GITHUB_REPO = "iisu-asset-tool"
 GITHUB_API_URL = f"https://api.github.com/repos/{GITHUB_OWNER}/{GITHUB_REPO}/releases/latest"
 

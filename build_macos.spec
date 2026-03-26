@@ -23,6 +23,7 @@ for src, dst in [
     ('fallback_icons', 'fallback_icons'),
     ('borders', 'borders'),
     ('templates', 'templates'),
+    ('locales/*.json', 'locales'),
 ]:
     if os.path.exists(src):
         _datas.append((src, dst))
@@ -53,6 +54,7 @@ a = Analysis(
         'bs4',
         'tqdm',
         'aggdraw',  # Required by psd_tools for vector shape rendering
+        'device_asset_dialog',  # Dynamically imported by options_dialog
     ] + psd_tools_imports,  # Add all psd_tools submodules
     hookspath=[],
     hooksconfig={},
@@ -111,8 +113,8 @@ app = BUNDLE(
         'NSPrincipalClass': 'NSApplication',
         'NSAppleScriptEnabled': False,
         'CFBundleDocumentTypes': [],
-        'CFBundleShortVersionString': '2.0.1',
-        'CFBundleVersion': '2.0.1',
+        'CFBundleShortVersionString': '2.0.2',
+        'CFBundleVersion': '2.0.2',
         # Icon will be set by the workflow post-build
         'CFBundleIconFile': 'app_icon',
     },

@@ -22,7 +22,7 @@ class UpdateChecker {
     companion object {
         private const val TAG = "UpdateChecker"
         private const val GITHUB_API_URL =
-            "https://api.github.com/repos/viik4/iisu-asset-tool/releases/latest"
+            "https://api.github.com/repos/wang1025475397/iisu-asset-tool/releases/latest"
         private const val CONNECT_TIMEOUT = 10_000  // 10 seconds
         private const val READ_TIMEOUT = 30_000     // 30 seconds
         private const val DOWNLOAD_TIMEOUT = 300_000 // 5 minutes for APK download

@@ -1,6 +1,16 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+}
+
+// Load signing config from keystore.properties or environment variables (CI)
+val keystoreProperties = Properties()
+val keystorePropertiesFile = file("../keystore.properties")
+if (keystorePropertiesFile.exists()) {
+    keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
 android {
@@ -12,9 +22,26 @@ android {
         minSdk = 24
         targetSdk = 34
         versionCode = 5
-        versionName = "2.0.1"
+        versionName = "2.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            // Priority: keystore.properties > environment variables (CI)
+            val ksPath = keystoreProperties.getProperty("storeFile") ?: System.getenv("KEYSTORE_PATH")
+            val ksPassword = keystoreProperties.getProperty("storePassword") ?: System.getenv("KEYSTORE_PASSWORD")
+            val ksKeyAlias = keystoreProperties.getProperty("keyAlias") ?: System.getenv("KEY_ALIAS")
+            val ksKeyPassword = keystoreProperties.getProperty("keyPassword") ?: System.getenv("KEY_PASSWORD")
+
+            if (ksPath != null && ksPassword != null && ksKeyAlias != null && ksKeyPassword != null) {
+                storeFile = file(ksPath)
+                storePassword = ksPassword
+                keyAlias = ksKeyAlias
+                keyPassword = ksKeyPassword
+            }
+        }
     }
 
     buildTypes {
@@ -25,6 +52,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 

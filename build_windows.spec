@@ -10,12 +10,21 @@ psd_tools_imports = collect_submodules('psd_tools')
 # Collect psd_tools data files (if any)
 psd_tools_datas = collect_data_files('psd_tools')
 
+# Collect additional data files
+locales_datas = [('locales/*.json', 'locales')]  # Include language files
+# Add other required resource files
+resource_datas = [
+    ('config.yaml', '.'),  # Include default config
+    ('iisu_theme.qss', '.'),  # Dark theme
+    ('iisu_theme_light.qss', '.'),  # Light theme
+]
+
 # Minimal build - assets are distributed alongside the exe by GitHub Actions
 a = Analysis(
     ['run_gui.py'],
     pathex=[],
     binaries=[],
-    datas=psd_tools_datas,  # Include psd_tools data files
+    datas=psd_tools_datas + locales_datas + resource_datas,  # Include psd_tools, locales and resource files
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtGui',
@@ -31,6 +40,7 @@ a = Analysis(
         'bs4',
         'tqdm',
         'aggdraw',  # Required by psd_tools for vector shape rendering
+        'device_asset_dialog',  # Dynamically imported by options_dialog
     ] + psd_tools_imports,  # Add all psd_tools submodules
     hookspath=[],
     hooksconfig={},
