@@ -39,7 +39,9 @@ a = Analysis(
         'imagehash',
         'bs4',
         'tqdm',
-        'aggdraw'  # Required by psd_tools for vector shape rendering
+        'aggdraw',  # Required by psd_tools for vector shape rendering
+        'device_asset_dialog',
+        'source_priority_widget',
     ] + psd_tools_imports,  # Add all psd_tools submodules
     hookspath=[],
     hooksconfig={},
