@@ -19,7 +19,7 @@ resource_datas = [
     ('iisu_theme_light.qss', '.'),  # Light theme
 ]
 
-# Minimal build - assets are distributed alongside the exe by GitHub Actions
+# Minimal build - assets are distributed alongside the executable by GitHub Actions
 a = Analysis(
     ['run_gui.py'],
     pathex=[],
@@ -66,19 +66,17 @@ a = Analysis(
 
 pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
 
+# Directory mode (onedir) - more reliable module resolution than single-file mode
 exe = EXE(
     pyz,
     a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
     [],
+    exclude_binaries=True,
     name='iiSU_Asset_Tool',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
-    runtime_tmpdir=None,
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
@@ -86,4 +84,15 @@ exe = EXE(
     codesign_identity=None,
     entitlements_file=None,
     icon='logo.png' if os.path.exists('logo.png') else None,
+)
+
+coll = COLLECT(
+    exe,
+    a.binaries,
+    a.zipfiles,
+    a.datas,
+    strip=False,
+    upx=False,
+    upx_exclude=[],
+    name='iiSU_Asset_Tool',
 )

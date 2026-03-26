@@ -32,8 +32,9 @@ jobs:
     - name: Package Windows release
       shell: pwsh
       run: |
-        New-Item -ItemType Directory -Force -Path releases\windows\iiSU_Asset_Tool
-        Copy-Item dist\iiSU_Asset_Tool.exe releases\windows\iiSU_Asset_Tool\
+        # Copy entire PyInstaller output (directory mode: exe + _internal/)
+        Copy-Item -Recurse dist\iiSU_Asset_Tool\* releases\windows\iiSU_Asset_Tool\
+        # Copy external assets alongside the executable
         Copy-Item -Recurse borders releases\windows\iiSU_Asset_Tool\
         Copy-Item -Recurse fonts releases\windows\iiSU_Asset_Tool\
         Copy-Item -Recurse platform_icons releases\windows\iiSU_Asset_Tool\
