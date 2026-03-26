@@ -38,6 +38,7 @@ from khinsider_scraper import (
     SoundbyteSearchResult, search_soundbytes
 )
 import requests
+import i18n
 
 
 class FlowLayout(QLayout):
@@ -197,11 +198,11 @@ class AlbumCard(QFrame):
         badges.setSpacing(4)
 
         if album.is_gamerip:
-            gamerip_badge = self._create_badge("GAMERIP", "#4CAF50")
+            gamerip_badge = self._create_badge(i18n.tr("GAMERIP"), "#4CAF50")
             badges.addWidget(gamerip_badge)
 
         if album.track_count > 0:
-            count_badge = self._create_badge(f"{album.track_count} tracks", "#9575CD")
+            count_badge = self._create_badge(i18n.tr("{n} tracks", n=album.track_count), "#9575CD")
             badges.addWidget(count_badge)
 
         badges.addStretch()
@@ -241,7 +242,7 @@ class AlbumCard(QFrame):
                 )
                 self.cover_label.setPixmap(scaled)
             else:
-                self.cover_label.setText("No Art")
+                self.cover_label.setText(i18n.tr("No Art"))
         except RuntimeError:
             pass  # Widget was deleted
 
@@ -294,7 +295,7 @@ class TrackPreviewDialog(QDialog):
             self._audio_output.setVolume(0.7)
             self._player.playbackStateChanged.connect(self._on_playback_state_changed)
 
-        self.setWindowTitle(f"{album.game_name} - Select Track")
+        self.setWindowTitle(f"{album.game_name} - {i18n.tr('Select Track')}")
         self.setMinimumSize(500, 600)
         self.setModal(True)
 
@@ -312,7 +313,7 @@ class TrackPreviewDialog(QDialog):
         layout.addWidget(header)
 
         if self.album.is_gamerip:
-            gamerip = QLabel("GAMERIP - High Quality")
+            gamerip = QLabel(i18n.tr("GAMERIP - High Quality"))
             # Kept inline: green accent color (#4CAF50) has no matching QSS objectName
             gamerip.setStyleSheet("color: #4CAF50; font-size: 12px;")
             layout.addWidget(gamerip)
@@ -322,9 +323,9 @@ class TrackPreviewDialog(QDialog):
         filter_layout = QHBoxLayout(filter_frame)
         filter_layout.setContentsMargins(0, 0, 0, 0)
 
-        filter_layout.addWidget(QLabel("Search:"))
+        filter_layout.addWidget(QLabel(i18n.tr("Search:")))
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Filter tracks...")
+        self.search_input.setPlaceholderText(i18n.tr("Filter tracks..."))
         self.search_input.textChanged.connect(self._filter_tracks)
         filter_layout.addWidget(self.search_input, 1)
 
@@ -338,7 +339,7 @@ class TrackPreviewDialog(QDialog):
         layout.addWidget(self.track_list, 1)
 
         # Status
-        self.status_label = QLabel("Loading tracks...")
+        self.status_label = QLabel(i18n.tr("Loading tracks..."))
         self.status_label.setObjectName("label_muted")
         layout.addWidget(self.status_label)
 
@@ -347,7 +348,7 @@ class TrackPreviewDialog(QDialog):
         self.selected_frame.setObjectName("selected_track_panel")
         selected_layout = QVBoxLayout(self.selected_frame)
 
-        self.selected_title = QLabel("No track selected")
+        self.selected_title = QLabel(i18n.tr("No track selected"))
         self.selected_title.setObjectName("label_accent")
         selected_layout.addWidget(self.selected_title)
 
@@ -359,9 +360,9 @@ class TrackPreviewDialog(QDialog):
         if HAS_MULTIMEDIA:
             preview_row = QHBoxLayout()
 
-            self.preview_btn = QPushButton("▶ Preview")
+            self.preview_btn = QPushButton(i18n.tr("▶ Preview"))
             self.preview_btn.setObjectName("btn_secondary")
-            self.preview_btn.setToolTip("Play a preview of this track")
+            self.preview_btn.setToolTip(i18n.tr("Play a preview of this track"))
             self.preview_btn.clicked.connect(self._toggle_preview)
             self.preview_btn.setEnabled(False)
             preview_row.addWidget(self.preview_btn)
@@ -371,7 +372,7 @@ class TrackPreviewDialog(QDialog):
             self.volume_slider.setMaximum(100)
             self.volume_slider.setValue(70)
             self.volume_slider.setFixedWidth(80)
-            self.volume_slider.setToolTip("Volume")
+            self.volume_slider.setToolTip(i18n.tr("Volume"))
             self.volume_slider.valueChanged.connect(self._on_volume_changed)
             preview_row.addWidget(QLabel("🔊"))
             preview_row.addWidget(self.volume_slider)
@@ -383,7 +384,7 @@ class TrackPreviewDialog(QDialog):
             preview_row.addStretch()
             selected_layout.addLayout(preview_row)
         else:
-            no_preview = QLabel("Audio preview unavailable (PySide6-Multimedia not installed)")
+            no_preview = QLabel(i18n.tr("Audio preview unavailable (PySide6-Multimedia not installed)"))
             no_preview.setObjectName("label_muted")
             selected_layout.addWidget(no_preview)
 
@@ -393,20 +394,20 @@ class TrackPreviewDialog(QDialog):
         # Buttons
         button_layout = QHBoxLayout()
 
-        self.download_btn = QPushButton("Download Selected")
+        self.download_btn = QPushButton(i18n.tr("Download Selected"))
         self.download_btn.setObjectName("btn_primary")
         self.download_btn.setEnabled(False)
         self.download_btn.clicked.connect(self.accept)
         button_layout.addWidget(self.download_btn)
 
-        self.open_btn = QPushButton("Open in Browser")
+        self.open_btn = QPushButton(i18n.tr("Open in Browser"))
         self.open_btn.setObjectName("btn_secondary")
         self.open_btn.clicked.connect(self._open_in_browser)
         button_layout.addWidget(self.open_btn)
 
         button_layout.addStretch()
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(i18n.tr("Cancel"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
@@ -433,7 +434,7 @@ class TrackPreviewDialog(QDialog):
         """Handle tracks loaded."""
         self.album = album
         self._populate_track_list()
-        self.status_label.setText(f"{len(album.tracks)} tracks found")
+        self.status_label.setText(i18n.tr("{n} tracks found", n=len(album.tracks)))
 
     def _on_load_error(self, error: str):
         """Handle load error."""
@@ -468,8 +469,8 @@ class TrackPreviewDialog(QDialog):
             self.selected_track = item.track
 
             self.selected_title.setText(item.track.title)
-            duration = item.track.duration or "Unknown"
-            self.selected_info.setText(f"Duration: {duration} | Track #{item.track.track_number}")
+            duration = item.track.duration or i18n.tr("Unknown")
+            self.selected_info.setText(i18n.tr("Duration: {duration} | Track #{number}", duration=duration, number=item.track.track_number))
 
             self.selected_frame.setVisible(True)
             self.download_btn.setEnabled(True)
@@ -505,7 +506,7 @@ class TrackPreviewDialog(QDialog):
             return
 
         self.preview_btn.setEnabled(False)
-        self.preview_status.setText("Loading...")
+        self.preview_status.setText(i18n.tr("Loading..."))
 
         signals = self._signals
         scraper = self.scraper
@@ -531,7 +532,7 @@ class TrackPreviewDialog(QDialog):
             return
 
         self.preview_btn.setEnabled(True)
-        self.preview_status.setText("Playing...")
+        self.preview_status.setText(i18n.tr("Playing..."))
 
         # Duck background music while previewing
         bg_music = get_music_manager()
@@ -542,7 +543,7 @@ class TrackPreviewDialog(QDialog):
         self._player.setSource(QUrl(url))
         self._player.play()
         self._is_playing = True
-        self.preview_btn.setText("⏹ Stop")
+        self.preview_btn.setText(i18n.tr("⏹ Stop"))
 
     def _on_preview_error(self, error: str):
         """Handle preview error."""
@@ -556,7 +557,7 @@ class TrackPreviewDialog(QDialog):
         if HAS_MULTIMEDIA and self._player:
             self._player.stop()
             self._is_playing = False
-            self.preview_btn.setText("▶ Preview")
+            self.preview_btn.setText(i18n.tr("▶ Preview"))
             self.preview_status.setText("")
 
         # Restore background music volume
@@ -570,7 +571,7 @@ class TrackPreviewDialog(QDialog):
             from PySide6.QtMultimedia import QMediaPlayer
             if state == QMediaPlayer.PlaybackState.StoppedState:
                 self._is_playing = False
-                self.preview_btn.setText("▶ Preview")
+                self.preview_btn.setText(i18n.tr("▶ Preview"))
                 self.preview_status.setText("")
                 # Restore background music volume when track ends naturally
                 if self._bg_music_original_volume is not None:
@@ -605,7 +606,7 @@ class GameFolderSelectDialog(QDialog):
         self.output_dir = output_dir
         self.selected_path: Optional[Path] = None
 
-        self.setWindowTitle("Select Game Folder")
+        self.setWindowTitle(i18n.tr("Select Game Folder"))
         self.setMinimumSize(500, 500)
         self.setModal(True)
 
@@ -617,26 +618,26 @@ class GameFolderSelectDialog(QDialog):
         layout.setSpacing(12)
 
         # Header
-        header = QLabel("Select a game to add the soundbyte to:")
+        header = QLabel(i18n.tr("Select a game to add the soundbyte to:"))
         header.setObjectName("label_header")
         layout.addWidget(header)
 
-        desc = QLabel("Choose an existing game from your library, or create a new folder.")
+        desc = QLabel(i18n.tr("Choose an existing game from your library, or create a new folder."))
         desc.setObjectName("label_muted")
         layout.addWidget(desc)
 
         # Search/filter
         search_row = QHBoxLayout()
-        search_row.addWidget(QLabel("Filter:"))
+        search_row.addWidget(QLabel(i18n.tr("Filter:")))
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Type to filter games...")
+        self.filter_input.setPlaceholderText(i18n.tr("Type to filter games..."))
         self.filter_input.textChanged.connect(self._filter_games)
         search_row.addWidget(self.filter_input)
         layout.addLayout(search_row)
 
         # Game list
         self.game_tree = QTreeWidget()
-        self.game_tree.setHeaderLabels(["Platform / Game", "Has Music"])
+        self.game_tree.setHeaderLabels([i18n.tr("Platform / Game"), i18n.tr("Has Music")])
         self.game_tree.setColumnWidth(0, 350)
         self.game_tree.itemDoubleClicked.connect(self._on_item_double_clicked)
         self.game_tree.itemClicked.connect(self._on_item_clicked)
@@ -647,7 +648,7 @@ class GameFolderSelectDialog(QDialog):
         new_frame.setObjectName("card")
         new_layout = QVBoxLayout(new_frame)
 
-        new_header = QLabel("Or create a new game folder:")
+        new_header = QLabel(i18n.tr("Or create a new game folder:"))
         new_header.setObjectName("label_card_title")
         new_layout.addWidget(new_header)
 
@@ -666,12 +667,12 @@ class GameFolderSelectDialog(QDialog):
         create_row.addWidget(self.platform_combo)
 
         self.new_game_input = QLineEdit()
-        self.new_game_input.setPlaceholderText("New game folder name...")
+        self.new_game_input.setPlaceholderText(i18n.tr("New game folder name..."))
         if suggested_name:
             self.new_game_input.setText(suggested_name)
         create_row.addWidget(self.new_game_input, 1)
 
-        self.create_btn = QPushButton("Create && Select")
+        self.create_btn = QPushButton(i18n.tr("Create && Select"))
         self.create_btn.clicked.connect(self._create_new_folder)
         create_row.addWidget(self.create_btn)
 
@@ -679,7 +680,7 @@ class GameFolderSelectDialog(QDialog):
         layout.addWidget(new_frame)
 
         # Selected path display
-        self.selected_label = QLabel("No folder selected")
+        self.selected_label = QLabel(i18n.tr("No folder selected"))
         self.selected_label.setObjectName("label_muted")
         layout.addWidget(self.selected_label)
 
@@ -687,13 +688,13 @@ class GameFolderSelectDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.select_btn = QPushButton("Select")
+        self.select_btn = QPushButton(i18n.tr("Select"))
         self.select_btn.setObjectName("btn_primary")
         self.select_btn.setEnabled(False)
         self.select_btn.clicked.connect(self.accept)
         button_layout.addWidget(self.select_btn)
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(i18n.tr("Cancel"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
@@ -780,27 +781,27 @@ class GameFolderSelectDialog(QDialog):
         game_name = self.new_game_input.text().strip()
 
         if not game_name:
-            QMessageBox.warning(self, "Error", "Please enter a game name.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Please enter a game name."))
             return
 
         # Sanitize folder name
         safe_name = "".join(c for c in game_name if c.isalnum() or c in " -_().").strip()
         if not safe_name:
-            QMessageBox.warning(self, "Error", "Invalid game name.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Invalid game name."))
             return
 
         new_path = self.output_dir / platform / safe_name
         try:
             new_path.mkdir(parents=True, exist_ok=True)
             self.selected_path = new_path
-            self.selected_label.setText(f"Created: {new_path}")
+            self.selected_label.setText(i18n.tr("Created: {path}", path=new_path))
             # Kept inline: dynamic runtime status color change (success green)
             self.selected_label.setStyleSheet("color: #4CAF50;")
             self.select_btn.setEnabled(True)
             # Refresh the tree
             self._scan_library()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Could not create folder:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Could not create folder:\n{error}", error=e))
 
     def get_selected_path(self) -> Optional[Path]:
         """Get the selected game folder path."""
@@ -869,13 +870,13 @@ class SoundbyteTab(QWidget):
         header_layout = QVBoxLayout(header_card)
 
         title_row = QHBoxLayout()
-        title = QLabel("Soundbyte Browser")
+        title = QLabel(i18n.tr("Soundbyte Browser"))
         title.setObjectName("label_header")
         title_row.addWidget(title)
         title_row.addStretch()
         header_layout.addLayout(title_row)
 
-        desc = QLabel("Search and download game music from KHInsider for iiSU hover sounds.")
+        desc = QLabel(i18n.tr("Search and download game music from KHInsider for iiSU hover sounds."))
         desc.setObjectName("label_muted")
         header_layout.addWidget(desc)
 
@@ -886,7 +887,7 @@ class SoundbyteTab(QWidget):
         search_card.setObjectName("card")
         search_layout = QVBoxLayout(search_card)
 
-        search_header = QLabel("Search for Soundtracks")
+        search_header = QLabel(i18n.tr("Search for Soundtracks"))
         search_header.setObjectName("label_card_title")
         search_layout.addWidget(search_header)
 
@@ -894,12 +895,12 @@ class SoundbyteTab(QWidget):
         search_row = QHBoxLayout()
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search for Soundtracks")
+        self.search_input.setPlaceholderText(i18n.tr("Search for Soundtracks"))
         self.search_input.setMinimumHeight(40)
         self.search_input.returnPressed.connect(self._search)
         search_row.addWidget(self.search_input, 1)
 
-        self.search_btn = QPushButton("Search")
+        self.search_btn = QPushButton(i18n.tr("Search"))
         self.search_btn.setObjectName("btn_primary")
         self.search_btn.setMinimumHeight(40)
         self.search_btn.setMinimumWidth(100)
@@ -911,21 +912,21 @@ class SoundbyteTab(QWidget):
         # Target game selection row
         game_row = QHBoxLayout()
 
-        game_row.addWidget(QLabel("Save to:"))
-        self.selected_game_label = QLabel("No game selected")
+        game_row.addWidget(QLabel(i18n.tr("Save to:")))
+        self.selected_game_label = QLabel(i18n.tr("No game selected"))
         self.selected_game_label.setObjectName("label_muted")
-        self.selected_game_label.setToolTip("Click 'Select Game' to choose where the soundbyte will be saved")
+        self.selected_game_label.setToolTip(i18n.tr("Click 'Select Game' to choose where the soundbyte will be saved"))
         game_row.addWidget(self.selected_game_label, 1)
 
-        self.select_game_btn = QPushButton("Select Game...")
+        self.select_game_btn = QPushButton(i18n.tr("Select Game..."))
         self.select_game_btn.setObjectName("btn_secondary")
-        self.select_game_btn.setToolTip("Choose which game folder to save the soundbyte to")
+        self.select_game_btn.setToolTip(i18n.tr("Choose which game folder to save the soundbyte to"))
         self.select_game_btn.clicked.connect(self._select_target_game)
         game_row.addWidget(self.select_game_btn)
 
         self.clear_game_btn = QPushButton("×")
         self.clear_game_btn.setFixedWidth(30)
-        self.clear_game_btn.setToolTip("Clear game selection")
+        self.clear_game_btn.setToolTip(i18n.tr("Clear game selection"))
         self.clear_game_btn.clicked.connect(self._clear_target_game)
         self.clear_game_btn.setVisible(False)
         game_row.addWidget(self.clear_game_btn)
@@ -940,7 +941,7 @@ class SoundbyteTab(QWidget):
         results_layout = QVBoxLayout(results_card)
 
         results_header = QHBoxLayout()
-        self.results_label = QLabel("Search for a game to see soundtracks")
+        self.results_label = QLabel(i18n.tr("Search for a game to see soundtracks"))
         self.results_label.setObjectName("label_card_title")
         results_header.addWidget(self.results_label)
         results_header.addStretch()
@@ -961,7 +962,7 @@ class SoundbyteTab(QWidget):
 
         # Status bar
         status_row = QHBoxLayout()
-        self.status_label = QLabel("Ready")
+        self.status_label = QLabel(i18n.tr("Ready"))
         self.status_label.setObjectName("label_muted")
         status_row.addWidget(self.status_label)
 
@@ -978,12 +979,12 @@ class SoundbyteTab(QWidget):
         """Perform search."""
         query = self.search_input.text().strip()
         if not query:
-            QMessageBox.warning(self, "Search", "Please enter a game name")
+            QMessageBox.warning(self, i18n.tr("Search"), i18n.tr("Please enter a game name"))
             return
 
         self.search_btn.setEnabled(False)
-        self.status_label.setText(f"Searching for '{query}'...")
-        self.results_label.setText("Searching...")
+        self.status_label.setText(i18n.tr("Searching for '{query}'...", query=query))
+        self.results_label.setText(i18n.tr("Searching..."))
 
         # Clear current results
         self._clear_albums()
@@ -1006,25 +1007,25 @@ class SoundbyteTab(QWidget):
         self.search_btn.setEnabled(True)
 
         if result.error:
-            self.status_label.setText(f"Error: {result.error}")
+            self.status_label.setText(i18n.tr("Error: {error}", error=result.error))
             # Kept inline: dynamic runtime status color change (error red)
             self.status_label.setStyleSheet("color: #E53935;")
-            self.results_label.setText("Search failed")
+            self.results_label.setText(i18n.tr("Search failed"))
             return
 
         self._current_albums = result.albums
 
         if not result.albums:
-            self.status_label.setText("No results found")
+            self.status_label.setText(i18n.tr("No results found"))
             # Kept inline: dynamic runtime status color change (warning yellow)
             self.status_label.setStyleSheet("color: #FFB300;")
-            self.results_label.setText("No soundtracks found")
+            self.results_label.setText(i18n.tr("No soundtracks found"))
             return
 
-        self.status_label.setText(f"Found {len(result.albums)} album(s)")
+        self.status_label.setText(i18n.tr("Found {n} album(s)", n=len(result.albums)))
         # Kept inline: dynamic runtime status color change (success green)
         self.status_label.setStyleSheet("color: #4CAF50;")
-        self.results_label.setText(f"Found {len(result.albums)} Soundtrack(s)")
+        self.results_label.setText(i18n.tr("Found {n} Soundtrack(s)", n=len(result.albums)))
 
         # Display albums
         self._display_albums(result.albums)
@@ -1032,10 +1033,10 @@ class SoundbyteTab(QWidget):
     def _on_search_error(self, error: str):
         """Handle search error."""
         self.search_btn.setEnabled(True)
-        self.status_label.setText(f"Error: {error}")
+        self.status_label.setText(i18n.tr("Error: {error}", error=error))
         # Kept inline: dynamic runtime status color change (error red)
         self.status_label.setStyleSheet("color: #E53935;")
-        self.results_label.setText("Search failed")
+        self.results_label.setText(i18n.tr("Search failed"))
 
     def _clear_albums(self):
         """Clear the albums grid."""
@@ -1179,15 +1180,15 @@ class SoundbyteTab(QWidget):
         # Check if file already exists
         if Path(file_path).exists():
             reply = QMessageBox.question(
-                self, "File Exists",
-                f"This game already has a soundbyte:\n{file_path}\n\nOverwrite it?",
+                self, i18n.tr("File Exists"),
+                i18n.tr("This game already has a soundbyte:\n{path}\n\nOverwrite it?", path=file_path),
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )
             if reply != QMessageBox.Yes:
                 return
 
-        self.status_label.setText(f"Downloading: {track.title}...")
+        self.status_label.setText(i18n.tr("Downloading: {title}...", title=track.title))
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # Indeterminate
 
@@ -1224,7 +1225,7 @@ class SoundbyteTab(QWidget):
     def _on_download_complete(self, file_path: str, track: SoundbyteTrack):
         """Handle download complete."""
         self.progress_bar.setVisible(False)
-        self.status_label.setText(f"Downloaded: {track.title}")
+        self.status_label.setText(i18n.tr("Downloaded: {title}", title=track.title))
         # Kept inline: dynamic runtime status color change (success green)
         self.status_label.setStyleSheet("color: #4CAF50;")
 
@@ -1232,24 +1233,21 @@ class SoundbyteTab(QWidget):
         game_folder = Path(file_path).parent.name
 
         QMessageBox.information(
-            self, "Download Complete",
-            f"Soundbyte saved!\n\n"
-            f"Game: {game_folder}\n"
-            f"Track: {track.title}\n"
-            f"Duration: {track.duration or 'Unknown'}\n\n"
-            f"Location: {file_path}"
+            self, i18n.tr("Download Complete"),
+            i18n.tr("Soundbyte saved!\n\nGame: {game}\nTrack: {track}\nDuration: {duration}\n\nLocation: {path}",
+                    game=game_folder, track=track.title, duration=track.duration or i18n.tr("Unknown"), path=file_path)
         )
 
     def _on_download_error(self, error: str):
         """Handle download error."""
         self.progress_bar.setVisible(False)
-        self.status_label.setText(f"Download failed: {error}")
+        self.status_label.setText(i18n.tr("Download failed: {error}", error=error))
         # Kept inline: dynamic runtime status color change (error red)
         self.status_label.setStyleSheet("color: #E53935;")
 
         QMessageBox.critical(
-            self, "Download Failed",
-            f"Could not download track:\n{error}"
+            self, i18n.tr("Download Failed"),
+            i18n.tr("Could not download track:\n{error}", error=error)
         )
 
     def _select_target_game(self):
@@ -1272,7 +1270,7 @@ class SoundbyteTab(QWidget):
     def _clear_target_game(self):
         """Clear the selected target game."""
         self._selected_game_path = None
-        self.selected_game_label.setText("No game selected")
+        self.selected_game_label.setText(i18n.tr("No game selected"))
         self.selected_game_label.setStyleSheet("")  # Reset to QSS objectName styling (label_muted)
         self.clear_game_btn.setVisible(False)
 

@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QFileDialog, QMessageBox, QTreeWidget, QTreeWidgetItem,
     QFrame, QGroupBox, QScrollArea, QGridLayout, QSpinBox
 )
+import i18n
 
 from rom_parser import (
     ROMScanner, scan_generic_folder, get_available_drives,
@@ -144,7 +145,7 @@ class GameCardWidget(QFrame):
         layout.addLayout(badge_row)
 
         # Full tooltip
-        self.setToolTip(f"{title}\n[{platform}]\n\nClick to select\nDouble-click to generate")
+        self.setToolTip(f"{title}\n[{platform}]\n\n{i18n.tr('Click to select')}\n{i18n.tr('Double-click to generate')}")
 
     def _set_placeholder(self, platform: str):
         """Set placeholder image with platform icon."""
@@ -192,7 +193,7 @@ class GameCardWidget(QFrame):
             font = QFont()
             font.setPointSize(10)
             painter.setFont(font)
-            painter.drawText(placeholder.rect(), Qt.AlignCenter, "No Icon")
+            painter.drawText(placeholder.rect(), Qt.AlignCenter, i18n.tr("No Icon"))
 
         painter.end()
         self.image_label.setPixmap(placeholder)
@@ -314,7 +315,7 @@ class ScanWorker(QObject):
                     adb_devices = get_adb_devices() if adb_available else []
 
                     if adb_devices:
-                        self.scan_progress.emit(f"Scanning via ADB: {device_name}...")
+                        self.scan_progress.emit(i18n.tr("Scanning via ADB..."))
                         adb_path = subfolder.replace("Internal shared storage", "/sdcard").replace("Internal Storage", "/sdcard")
                         if not adb_path.startswith("/"):
                             adb_path = f"/sdcard/{adb_path}" if adb_path else "/sdcard/roms"
@@ -324,9 +325,9 @@ class ScanWorker(QObject):
                     if not results:
                         # Note: MTP fallback doesn't support deep search yet (ADB is preferred)
                         if self.deep_search:
-                            self.scan_progress.emit(f"Scanning MTP device: {device_name} (deep search requires ADB)...")
+                            self.scan_progress.emit(i18n.tr("Scanning MTP device: {device} (deep search requires ADB)...", device=device_name))
                         else:
-                            self.scan_progress.emit(f"Scanning MTP device: {device_name}...")
+                            self.scan_progress.emit(i18n.tr("Scanning MTP device: {device}...", device=device_name))
                         results = scan_mtp_device(device_name, subfolder)
                         # Convert 2-tuples to 3-tuples for consistency (MTP doesn't support relative_path yet)
                         for platform_key, games in results.items():
@@ -340,18 +341,18 @@ class ScanWorker(QObject):
                 # Standard filesystem path
                 path = Path(self.path_str)
                 if not path.exists():
-                    self.scan_error.emit(f"Folder not found: {self.path_str}")
+                    self.scan_error.emit(i18n.tr("Folder not found: {path}", path=self.path_str))
                     return
 
                 platform = detect_platform_from_folder(path.name)
                 if platform:
-                    self.scan_progress.emit(f"Scanning {platform}{'(deep)' if self.deep_search else ''}...")
+                    self.scan_progress.emit(i18n.tr("Scanning {platform}...", platform=platform))
                     games = scan_generic_folder(path, platform, self.deep_search)
                     results = {platform: games}
                     self.platform_found.emit(platform, games)
                 else:
                     # Multi-platform scan with live updates
-                    self.scan_progress.emit("Detecting platforms...")
+                    self.scan_progress.emit(i18n.tr("Detecting platforms..."))
                     self.scanner.set_iisu_path(path)
 
                     # Scan each platform folder individually for live updates
@@ -361,7 +362,7 @@ class ScanWorker(QObject):
                         if folder.is_dir():
                             platform_key = detect_platform_from_folder(folder.name)
                             if platform_key:
-                                self.scan_progress.emit(f"Scanning {platform_key}{'(deep)' if self.deep_search else ''}...")
+                                self.scan_progress.emit(i18n.tr("Scanning {platform}...", platform=platform_key))
                                 games = scan_generic_folder(folder, platform_key, self.deep_search)
                                 if games:
                                     results[platform_key] = games
@@ -369,7 +370,7 @@ class ScanWorker(QObject):
 
             if not self._cancelled:
                 total_games = sum(len(g) for g in results.values())
-                self.scan_finished.emit(results, f"Found {total_games} games in {len(results)} platforms")
+                self.scan_finished.emit(results, i18n.tr("Found {n} games in {platforms} platforms", n=total_games, platforms=len(results)))
 
         except Exception as e:
             import traceback
@@ -387,7 +388,7 @@ class ScanWorker(QObject):
         results = {}
         adb_path = get_adb_path()
         if not adb_path:
-            self.scan_error.emit("ADB not found")
+            self.scan_error.emit(i18n.tr("ADB not found"))
             return results
 
         def run_adb(cmd, timeout=30):
@@ -534,10 +535,10 @@ class ScanWorker(QObject):
             folder_path = f"{rom_path}/{folder_name}"
 
             if self.deep_search:
-                self.scan_progress.emit(f"Deep scanning {platform_key} ({i+1}/{len(platform_folders)})...")
+                self.scan_progress.emit(i18n.tr("Deep scanning {platform} ({current}/{total})...", platform=platform_key, current=i+1, total=len(platform_folders)))
                 games = scan_folder_deep_fast(folder_path)
             else:
-                self.scan_progress.emit(f"Scanning {platform_key} ({i+1}/{len(platform_folders)})...")
+                self.scan_progress.emit(i18n.tr("Scanning {platform} ({current}/{total})...", platform=platform_key, current=i+1, total=len(platform_folders)))
                 games = scan_folder_shallow(folder_path)
 
             if games:
@@ -743,35 +744,35 @@ class ROMBrowserTab(QWidget):
         path_row.setSpacing(8)
 
         self.path_input = QLineEdit()
-        self.path_input.setPlaceholderText("Select ROM folder or scan Android device...")
+        self.path_input.setPlaceholderText(i18n.tr("Select ROM folder or scan Android device..."))
         self.path_input.setMinimumHeight(38)
         self.path_input.returnPressed.connect(self._scan_directory)
         path_row.addWidget(self.path_input, 1)
 
         # Browse button with dropdown for device options
-        self.btn_browse = QPushButton("Browse ▾")
+        self.btn_browse = QPushButton(i18n.tr("Browse ▾"))
         self.btn_browse.setObjectName("btn_secondary")
         self.btn_browse.setMinimumHeight(38)
         self.btn_browse.setMinimumWidth(90)
-        self.btn_browse.setToolTip("Browse folder or select device")
+        self.btn_browse.setToolTip(i18n.tr("Browse folder or select device"))
 
         # Create context menu for browse options
         from PySide6.QtWidgets import QMenu
         self.browse_menu = QMenu(self)
-        self.browse_menu.addAction("Browse Local Folder", self._browse_folder)
-        self.browse_menu.addAction("USB Drive / External", self._show_drive_selector)
+        self.browse_menu.addAction(i18n.tr("Browse Local Folder"), self._browse_folder)
+        self.browse_menu.addAction(i18n.tr("USB Drive / External"), self._show_drive_selector)
         self.browse_menu.addSeparator()
-        self.browse_menu.addAction("Scan Android (ADB)", self._show_adb_scan_dialog)
+        self.browse_menu.addAction(i18n.tr("Scan Android (ADB)"), self._show_adb_scan_dialog)
         self.browse_menu.addSeparator()
-        self.browse_menu.addAction("Add Games Manually", self._show_manual_add_dialog)
+        self.browse_menu.addAction(i18n.tr("Add Games Manually"), self._show_manual_add_dialog)
         self.btn_browse.setMenu(self.browse_menu)
         path_row.addWidget(self.btn_browse)
 
         # Scan button
-        self.btn_refresh = QPushButton("Scan")
+        self.btn_refresh = QPushButton(i18n.tr("Scan"))
         self.btn_refresh.setMinimumHeight(38)
         self.btn_refresh.setMinimumWidth(70)
-        self.btn_refresh.setToolTip("Scan selected folder for ROMs")
+        self.btn_refresh.setToolTip(i18n.tr("Scan selected folder for ROMs"))
         self.btn_refresh.clicked.connect(self._scan_directory)
         self.btn_refresh.setObjectName("btn_primary")
         path_row.addWidget(self.btn_refresh)
@@ -797,7 +798,7 @@ class ROMBrowserTab(QWidget):
         left_layout.setContentsMargins(0, 0, 0, 0)
         left_layout.setSpacing(4)
 
-        platform_label = QLabel("Platforms")
+        platform_label = QLabel(i18n.tr("Platforms"))
         platform_label.setObjectName("label_card_title")
         left_layout.addWidget(platform_label)
 
@@ -812,7 +813,7 @@ class ROMBrowserTab(QWidget):
         self.platform_tree.customContextMenuRequested.connect(self._show_platform_context_menu)
         left_layout.addWidget(self.platform_tree, 1)
 
-        self.platform_stats = QLabel("No ROMs scanned")
+        self.platform_stats = QLabel(i18n.tr("No ROMs scanned"))
         self.platform_stats.setObjectName("label_muted")
         left_layout.addWidget(self.platform_stats)
 
@@ -856,7 +857,7 @@ class ROMBrowserTab(QWidget):
         filter_row.addStretch()
 
         # Missing assets count label
-        self.missing_count_label = QLabel("0 missing assets")
+        self.missing_count_label = QLabel(i18n.tr("0 missing assets"))
         self.missing_count_label.setObjectName("label_warning")
         filter_row.addWidget(self.missing_count_label)
 
@@ -867,7 +868,7 @@ class ROMBrowserTab(QWidget):
         search_row.setSpacing(6)
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search games...")
+        self.search_input.setPlaceholderText(i18n.tr("Search games..."))
         self.search_input.textChanged.connect(self._filter_games)
         search_row.addWidget(self.search_input, 1)
 
@@ -909,7 +910,7 @@ class ROMBrowserTab(QWidget):
         self._game_cards: List[GameCardWidget] = []
         self._current_asset_filter = "all"
 
-        self.games_info = QLabel("Select a platform to view games")
+        self.games_info = QLabel(i18n.tr("Select a platform to view games"))
         self.games_info.setObjectName("label_muted")
         right_layout.addWidget(self.games_info)
 
@@ -923,16 +924,16 @@ class ROMBrowserTab(QWidget):
         action_row.setSpacing(8)
 
         # Bulk generate all button
-        self.btn_bulk_generate = QPushButton("Bulk Generate All")
+        self.btn_bulk_generate = QPushButton(i18n.tr("Bulk Generate All"))
         self.btn_bulk_generate.setObjectName("btn_action")
         self.btn_bulk_generate.setMinimumHeight(40)
         self.btn_bulk_generate.setMinimumWidth(140)
-        self.btn_bulk_generate.setToolTip("Generate all missing assets for selected games")
+        self.btn_bulk_generate.setToolTip(i18n.tr("Generate all missing assets for selected games"))
         self.btn_bulk_generate.clicked.connect(self._bulk_generate_all)
         action_row.addWidget(self.btn_bulk_generate)
 
         # Primary action button
-        self.btn_process = QPushButton("Generate Selected")
+        self.btn_process = QPushButton(i18n.tr("Generate Selected"))
         self.btn_process.setObjectName("btn_primary")
         self.btn_process.setMinimumHeight(40)
         self.btn_process.setMinimumWidth(130)
@@ -940,12 +941,12 @@ class ROMBrowserTab(QWidget):
         action_row.addWidget(self.btn_process)
 
         # Cancel button
-        self.btn_cancel = QPushButton("Cancel")
+        self.btn_cancel = QPushButton(i18n.tr("Cancel"))
         self.btn_cancel.setObjectName("btn_secondary")
         self.btn_cancel.setMinimumHeight(40)
         self.btn_cancel.setMinimumWidth(65)
         self.btn_cancel.setEnabled(False)
-        self.btn_cancel.setToolTip("Cancel processing")
+        self.btn_cancel.setToolTip(i18n.tr("Cancel processing"))
         self.btn_cancel.clicked.connect(self._cancel_processing)
         action_row.addWidget(self.btn_cancel)
 
@@ -955,15 +956,15 @@ class ROMBrowserTab(QWidget):
         self.progress.setValue(0)
         self.progress.setMinimumHeight(40)
         self.progress.setTextVisible(True)
-        self.progress.setFormat("Ready")
+        self.progress.setFormat(i18n.tr("Ready"))
         action_row.addWidget(self.progress, 1)
 
         # Compact options (moved to right side)
-        region_label = QLabel("Region:")
+        region_label = QLabel(i18n.tr("Region:"))
         region_label.setObjectName("label_muted")
         action_row.addWidget(region_label)
         self.region_combo = QComboBox()
-        self.region_combo.setToolTip("Prefer artwork from specific region")
+        self.region_combo.setToolTip(i18n.tr("Prefer artwork from specific region"))
         self.region_combo.addItem("Any", "any")
         self.region_combo.addItem("USA", "USA")
         self.region_combo.addItem("EUR", "EUR")
@@ -974,38 +975,38 @@ class ROMBrowserTab(QWidget):
         action_row.addWidget(self.region_combo)
 
         # Hero toggle (compact)
-        self.hero_check = QCheckBox("Heroes")
+        self.hero_check = QCheckBox(i18n.tr("Heroes"))
         self.hero_check.setChecked(True)
-        self.hero_check.setToolTip("Download hero/banner images")
+        self.hero_check.setToolTip(i18n.tr("Download hero/banner images"))
         action_row.addWidget(self.hero_check)
 
         # Interactive toggle
-        self.interactive_check = QCheckBox("Interactive")
-        self.interactive_check.setToolTip("Choose artwork manually")
+        self.interactive_check = QCheckBox(i18n.tr("Interactive"))
+        self.interactive_check.setToolTip(i18n.tr("Choose artwork manually"))
         action_row.addWidget(self.interactive_check)
 
         # Output folder button
-        self.btn_open_output = QPushButton("Output")
+        self.btn_open_output = QPushButton(i18n.tr("Output"))
         self.btn_open_output.setObjectName("btn_small")
         self.btn_open_output.setMinimumHeight(40)
         self.btn_open_output.setMinimumWidth(60)
-        self.btn_open_output.setToolTip("Open output folder")
+        self.btn_open_output.setToolTip(i18n.tr("Open output folder"))
         self.btn_open_output.clicked.connect(self._open_output)
         action_row.addWidget(self.btn_open_output)
 
         # Logs button
-        self.btn_show_logs = QPushButton("Logs")
+        self.btn_show_logs = QPushButton(i18n.tr("Logs"))
         self.btn_show_logs.setObjectName("btn_small")
         self.btn_show_logs.setMinimumHeight(40)
         self.btn_show_logs.setMinimumWidth(50)
-        self.btn_show_logs.setToolTip("View processing logs")
+        self.btn_show_logs.setToolTip(i18n.tr("View processing logs"))
         self.btn_show_logs.clicked.connect(self._show_logs_dialog)
         action_row.addWidget(self.btn_show_logs)
 
         layout.addLayout(action_row)
 
         # Status label (compact)
-        self.status_label = QLabel("Ready")
+        self.status_label = QLabel(i18n.tr("Ready"))
         self.status_label.setObjectName("label_muted")
 
         layout.addWidget(self.status_label)
@@ -1019,14 +1020,14 @@ class ROMBrowserTab(QWidget):
 
         # Preview header with toggle
         preview_header = QHBoxLayout()
-        preview_title = QLabel("Generated Icons")
+        preview_title = QLabel(i18n.tr("Generated Icons"))
         preview_title.setObjectName("label_header")
         preview_header.addWidget(preview_title)
         preview_header.addStretch()
 
         self.btn_hide_preview = QPushButton("-")
         self.btn_hide_preview.setFixedSize(24, 24)
-        self.btn_hide_preview.setToolTip("Collapse preview")
+        self.btn_hide_preview.setToolTip(i18n.tr("Collapse preview"))
         self.btn_hide_preview.clicked.connect(self._toggle_preview_visibility)
         self.btn_hide_preview.setObjectName("btn_icon")
         preview_header.addWidget(self.btn_hide_preview)
@@ -1034,7 +1035,7 @@ class ROMBrowserTab(QWidget):
         # Popout button
         self.btn_popout_preview = QPushButton("^")
         self.btn_popout_preview.setFixedSize(24, 24)
-        self.btn_popout_preview.setToolTip("Pop out preview window")
+        self.btn_popout_preview.setToolTip(i18n.tr("Pop out preview window"))
         self.btn_popout_preview.clicked.connect(self._popout_preview)
         self.btn_popout_preview.setObjectName("btn_icon")
         preview_header.addWidget(self.btn_popout_preview)
@@ -1177,7 +1178,7 @@ class ROMBrowserTab(QWidget):
 
         new_query, ok = QInputDialog.getText(
             self,
-            "Edit Search Query",
+            i18n.tr("Edit Search Query"),
             f"Enter the game title to search for artwork.\n\nOriginal: {title}",
             text=clean_title
         )
@@ -1201,7 +1202,7 @@ class ROMBrowserTab(QWidget):
         selected_game = GameSearchDialog.search_and_select(
             parent=self,
             initial_query=clean_title,
-            title=f"Search Game - {title}"
+            title=i18n.tr("Search Game - {title}")
         )
 
         if selected_game:
@@ -1249,15 +1250,15 @@ class ROMBrowserTab(QWidget):
 
         drives = get_available_drives()
         if not drives:
-            QMessageBox.information(self, "No Drives", "No additional drives detected.")
+            QMessageBox.information(self, i18n.tr("No Drives"), i18n.tr("No additional drives detected."))
             return
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Select Drive or Device")
+        dialog.setWindowTitle(i18n.tr("Select Drive or Device"))
         dialog.setMinimumWidth(400)
 
         layout = QVBoxLayout(dialog)
-        layout.addWidget(QLabel("Select a drive or device:"))
+        layout.addWidget(QLabel(i18n.tr("Select a drive or device:")))
 
         drive_list = QListWidget()
         for drive_path, drive_label in drives:
@@ -1270,10 +1271,7 @@ class ROMBrowserTab(QWidget):
 
         # Help text for portable devices
         help_label = QLabel(
-            "<span style='color: #888; font-size: 10px;'>"
-            "For portable devices (Android, handhelds): Opens in Explorer. "
-            "Navigate to your ROM folder, then copy the path from the address bar."
-            "</span>"
+            f"<span style='color: #888; font-size: 10px;'>{i18n.tr('For portable devices (Android, handhelds): Opens in Explorer. Navigate to your ROM folder, then copy the path from the address bar.')}</span>"
         )
         help_label.setWordWrap(True)
         layout.addWidget(help_label)
@@ -1299,7 +1297,7 @@ class ROMBrowserTab(QWidget):
                     # Standard drive - use file dialog
                     path = QFileDialog.getExistingDirectory(
                         self,
-                        "Select ROM Folder",
+                        i18n.tr("Select ROM Folder"),
                         drive_path,
                         QFileDialog.ShowDirsOnly
                     )
@@ -1326,24 +1324,24 @@ class ROMBrowserTab(QWidget):
                 break
 
         if not device_name:
-            QMessageBox.warning(self, "Error", "Could not identify the device.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Could not identify the device."))
             return
 
         # Create a dialog to browse the device
         dialog = QDialog(self)
-        dialog.setWindowTitle(f"Browse {device_name}")
+        dialog.setWindowTitle(i18n.tr("Browse {device}", device=device_name))
         dialog.setMinimumSize(500, 450)
 
         layout = QVBoxLayout(dialog)
-        layout.addWidget(QLabel(f"Browsing: {device_name}\nDouble-click a folder to navigate, or type the path manually below."))
+        layout.addWidget(QLabel(i18n.tr("Browsing: {device}\nDouble-click a folder to navigate, or type the path manually below.", device=device_name)))
 
         # Manual path entry at the top
         manual_row = QHBoxLayout()
-        manual_row.addWidget(QLabel("Path:"))
+        manual_row.addWidget(QLabel(i18n.tr("Path:")))
         manual_path_input = QLineEdit()
-        manual_path_input.setPlaceholderText("e.g., Internal shared storage/Download/ROMs")
+        manual_path_input.setPlaceholderText(i18n.tr("e.g., Internal shared storage/Download/ROMs"))
         manual_row.addWidget(manual_path_input, 1)
-        btn_use_path = QPushButton("Use This Path")
+        btn_use_path = QPushButton(i18n.tr("Use This Path"))
         manual_row.addWidget(btn_use_path)
         layout.addLayout(manual_row)
 
@@ -1375,16 +1373,16 @@ class ROMBrowserTab(QWidget):
             """Load contents of a folder on the MTP device."""
             tree.clear()
             current_path[0] = folder_path
-            path_label.setText(f"Loading: /{folder_path}..." if folder_path else "Loading: /...")
+            path_label.setText(i18n.tr("Loading: /{path}...", path=folder_path) if folder_path else i18n.tr("Loading: /..."))
 
             # Add "go up" item if not at root
             if folder_path:
-                up_item = QTreeWidgetItem([".. (Go Up)", ""])
+                up_item = QTreeWidgetItem([i18n.tr(".. (Go Up)"), ""])
                 up_item.setData(0, Qt.UserRole, "GO_UP")
                 tree.addTopLevelItem(up_item)
 
             # Add loading indicator
-            loading_item = QTreeWidgetItem(["Loading...", ""])
+            loading_item = QTreeWidgetItem([i18n.tr("Loading..."), ""])
             tree.addTopLevelItem(loading_item)
 
             # Force UI update
@@ -1465,7 +1463,7 @@ if ($device) {{
                     up_item.setData(0, Qt.UserRole, "GO_UP")
                     tree.addTopLevelItem(up_item)
 
-                path_label.setText(f"Current path: /{folder_path}" if folder_path else "Current path: /")
+                path_label.setText(i18n.tr("Current path: /{path}", path=folder_path) if folder_path else i18n.tr("Current path: /"))
 
                 if result.returncode == 0 and result.stdout.strip():
                     for line in result.stdout.strip().split('\n'):
@@ -1486,16 +1484,16 @@ if ($device) {{
                     up_item = QTreeWidgetItem([".. (Go Up)", ""])
                     up_item.setData(0, Qt.UserRole, "GO_UP")
                     tree.addTopLevelItem(up_item)
-                path_label.setText(f"Current path: /{folder_path}" if folder_path else "Current path: /")
-                error_item = QTreeWidgetItem(["(Folder has too many files - try a subfolder)", ""])
+                path_label.setText(i18n.tr("Current path: /{path}", path=folder_path) if folder_path else i18n.tr("Current path: /"))
+                error_item = QTreeWidgetItem([i18n.tr("(Folder has too many files - try a subfolder)"), ""])
                 tree.addTopLevelItem(error_item)
             except Exception as e:
                 tree.clear()
                 if folder_path:
-                    up_item = QTreeWidgetItem([".. (Go Up)", ""])
+                    up_item = QTreeWidgetItem([i18n.tr(".. (Go Up)"), ""])
                     up_item.setData(0, Qt.UserRole, "GO_UP")
                     tree.addTopLevelItem(up_item)
-                path_label.setText(f"Error: {str(e)[:50]}")
+                path_label.setText(i18n.tr("Error: {error}", error=str(e)[:50]))
 
         def on_item_double_clicked(item, column):
             """Handle double-click to navigate into folder."""
@@ -1558,9 +1556,9 @@ if ($device) {{
             )
             return
 
-        self.status_label.setText("Scanning...")
+        self.status_label.setText(i18n.tr("Scanning..."))
         self.btn_refresh.setEnabled(False)
-        self.btn_refresh.setText("Scanning...")
+        self.btn_refresh.setText(i18n.tr("Scanning..."))
 
         # Clear previous data
         self.platform_tree.clear()
@@ -1629,7 +1627,7 @@ if ($device) {{
 
         # Update stats
         total_games = sum(len(g) for g in self._scan_results.values())
-        self.platform_stats.setText(f"{len(self._scan_results)} platforms, {total_games} games")
+        self.platform_stats.setText(i18n.tr("{n} platforms, {games} games", n=len(self._scan_results), games=total_games))
 
     @Slot(str)
     def _on_scan_progress(self, message: str):
@@ -1641,10 +1639,10 @@ if ($device) {{
         """Handle scan completion."""
         self._scan_results = results
         total_games = sum(len(g) for g in results.values())
-        self.platform_stats.setText(f"{len(results)} platforms, {total_games} games total")
+        self.platform_stats.setText(i18n.tr("{n} platforms, {games} games total", n=len(results), games=total_games))
         self.status_label.setText(message)
         self.btn_refresh.setEnabled(True)
-        self.btn_refresh.setText("Scan")
+        self.btn_refresh.setText(i18n.tr("Scan"))
 
         # Auto-select first platform
         if self.platform_tree.topLevelItemCount() > 0:
@@ -1655,10 +1653,10 @@ if ($device) {{
     @Slot(str)
     def _on_scan_error(self, error: str):
         """Handle scan error."""
-        self.status_label.setText("Scan failed")
+        self.status_label.setText(i18n.tr("Scan failed"))
         self.btn_refresh.setEnabled(True)
-        self.btn_refresh.setText("Scan")
-        QMessageBox.warning(self, "Scan Failed", error)
+        self.btn_refresh.setText(i18n.tr("Scan"))
+        QMessageBox.warning(self, i18n.tr("Scan Failed"), error)
 
     def _on_platform_selected(self, item, column):
         """Handle platform selection in tree."""
@@ -1802,15 +1800,15 @@ if ($device) {{
 
         # Update missing count label
         total_missing = missing_icons + missing_heroes + missing_logos
-        self.missing_count_label.setText(f"{total_missing} missing assets")
+        self.missing_count_label.setText(i18n.tr("{n} missing assets", n=total_missing))
 
         # Build region stats
         region_stats = ", ".join(f"{k}: {v}" for k, v in sorted(region_counts.items()) if k != "Unknown")
         icon_info = f" | {icons_found} icons found" if icons_found > 0 else ""
         if region_filter != "any":
-            self.games_info.setText(f"{filtered_count}/{len(games)} games in {platform_key} (filtered: {region_filter}){icon_info}")
+            self.games_info.setText(i18n.tr("{filtered}/{total} games in {platform} (filtered: {region})", filtered=filtered_count, total=len(games), platform=platform_key, region=region_filter) + icon_info)
         else:
-            self.games_info.setText(f"{len(games)} games in {platform_key}" + (f" ({region_stats})" if region_stats else "") + icon_info)
+            self.games_info.setText(i18n.tr("{n} games in {platform}", n=len(games), platform=platform_key) + (f" ({region_stats})" if region_stats else "") + icon_info)
 
         # Start background loading of device icons
         self._start_device_icon_loading(platform_key)
@@ -1860,7 +1858,7 @@ if ($device) {{
 
     def _on_icon_load_progress(self, current: int, total: int):
         """Handle icon loading progress updates."""
-        self.games_info.setText(f"Loading device icons: {current}/{total}...")
+        self.games_info.setText(i18n.tr("Loading device icons: {current}/{total}...", current=current, total=total))
 
     def _on_icon_loading_finished(self):
         """Handle icon loading completion - restore info text."""
@@ -1872,7 +1870,7 @@ if ($device) {{
                 games = current_item.data(0, Qt.UserRole + 1)
                 if games:
                     icons_found = sum(1 for card in self._game_cards if card.has_icon)
-                    self.games_info.setText(f"{len(games)} games in {platform_key} | {icons_found} icons loaded")
+                    self.games_info.setText(i18n.tr("{n} games in {platform} | {icons} icons loaded", n=len(games), platform=platform_key, icons=icons_found))
 
     def _on_device_icon_loaded(self, game_title: str, local_path: str):
         """Handle device icon loaded - update the corresponding card."""
@@ -2126,33 +2124,33 @@ if ($device) {{
         }
 
         # Generate icon for this game
-        action_generate = menu.addAction("Generate Icon")
+        action_generate = menu.addAction(i18n.tr("Generate Icon"))
         action_generate.triggered.connect(lambda: self._generate_single_game(game_data))
 
         # Generate with interactive selection
-        action_interactive = menu.addAction("Generate (Choose Artwork)")
+        action_interactive = menu.addAction(i18n.tr("Generate (Choose Artwork)"))
         action_interactive.triggered.connect(lambda: self._generate_single_game(game_data, interactive=True))
 
         menu.addSeparator()
 
         # Edit search query - simple text edit
-        action_edit_query = menu.addAction("Edit Search Query")
+        action_edit_query = menu.addAction(i18n.tr("Edit Search Query"))
         action_edit_query.triggered.connect(lambda: self._edit_search_query(game_data, card))
 
         # Search different game - full dialog with autocomplete
-        action_search_different = menu.addAction("Manual Search")
+        action_search_different = menu.addAction(i18n.tr("Manual Search"))
         action_search_different.triggered.connect(lambda: self._search_different_game(game_data, card))
 
         menu.addSeparator()
 
         # Search on SteamGridDB (web browser)
-        action_search_sgdb = menu.addAction("Search on SteamGridDB (Web)")
+        action_search_sgdb = menu.addAction(i18n.tr("Search on SteamGridDB (Web)"))
         action_search_sgdb.triggered.connect(
             lambda: QDesktopServices.openUrl(QUrl(f"https://www.steamgriddb.com/search/grids?term={card.title}"))
         )
 
         # Search on IGDB
-        action_search_igdb = menu.addAction("Search on IGDB (Web)")
+        action_search_igdb = menu.addAction(i18n.tr("Search on IGDB (Web)"))
         action_search_igdb.triggered.connect(
             lambda: QDesktopServices.openUrl(QUrl(f"https://www.igdb.com/search?utf8=%E2%9C%93&type=1&q={card.title}"))
         )
@@ -2160,23 +2158,23 @@ if ($device) {{
         menu.addSeparator()
 
         # Upload local files submenu
-        upload_menu = menu.addMenu("Upload Local File")
-        action_upload_icon = upload_menu.addAction("Upload Icon...")
+        upload_menu = menu.addMenu(i18n.tr("Upload Local File"))
+        action_upload_icon = upload_menu.addAction(i18n.tr("Upload Icon..."))
         action_upload_icon.triggered.connect(lambda: self._upload_local_file(game_data, "icon"))
-        action_upload_hero = upload_menu.addAction("Upload Hero...")
+        action_upload_hero = upload_menu.addAction(i18n.tr("Upload Hero..."))
         action_upload_hero.triggered.connect(lambda: self._upload_local_file(game_data, "hero"))
-        action_upload_logo = upload_menu.addAction("Upload Logo...")
+        action_upload_logo = upload_menu.addAction(i18n.tr("Upload Logo..."))
         action_upload_logo.triggered.connect(lambda: self._upload_local_file(game_data, "logo"))
 
         menu.addSeparator()
 
         # Preview existing assets
-        action_preview = menu.addAction("Preview Assets")
+        action_preview = menu.addAction(i18n.tr("Preview Assets"))
         action_preview.triggered.connect(lambda: self._preview_game_assets(game_data))
 
         # Open game folder (if local)
         if card.path and not card.path.startswith("manual://") and not card.path.startswith("iisu://"):
-            action_open_folder = menu.addAction("Open Game Folder")
+            action_open_folder = menu.addAction(i18n.tr("Open Game Folder"))
             action_open_folder.triggered.connect(
                 lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(card.path).parent)))
             )
@@ -2184,13 +2182,13 @@ if ($device) {{
         menu.addSeparator()
 
         # Delete assets option
-        action_delete = menu.addAction("Delete Local Assets")
+        action_delete = menu.addAction(i18n.tr("Delete Local Assets"))
         action_delete.triggered.connect(lambda: self._delete_game_assets(game_data))
 
         menu.addSeparator()
 
         # Hide title option
-        action_hide = menu.addAction("Hide Title")
+        action_hide = menu.addAction(i18n.tr("Hide Title"))
         action_hide.triggered.connect(lambda: self._hide_game(game_data))
 
         # Show the menu at cursor position
@@ -2201,11 +2199,11 @@ if ($device) {{
         selected = sum(1 for c in self._game_cards if c.is_selected)
         total = len(self._game_cards)
         if selected == total:
-            self.games_info.setText(f"All {total} games selected")
+            self.games_info.setText(i18n.tr("All {n} games selected", n=total))
         elif selected == 0:
-            self.games_info.setText(f"No games selected")
+            self.games_info.setText(i18n.tr("No games selected"))
         else:
-            self.games_info.setText(f"{selected} of {total} games selected")
+            self.games_info.setText(i18n.tr("{selected} of {total} games selected", selected=selected, total=total))
 
     def _set_asset_filter(self, filter_type: str):
         """Set the asset type filter and update filter button states."""
@@ -2395,31 +2393,31 @@ if ($device) {{
         menu.setObjectName("context_menu")
 
         # Generate icons for all games in platform
-        action_generate_all = menu.addAction(f"Generate All Icons ({len(games)} games)")
+        action_generate_all = menu.addAction(i18n.tr("Generate All Icons ({n} games)", n=len(games)))
         action_generate_all.triggered.connect(lambda: self._generate_platform(platform_key, games))
 
         # Generate missing icons only
-        action_generate_missing = menu.addAction("Generate Missing Icons Only")
+        action_generate_missing = menu.addAction(i18n.tr("Generate Missing Icons Only"))
         action_generate_missing.triggered.connect(lambda: self._generate_platform_missing(platform_key, games))
 
         menu.addSeparator()
 
         # Select all games in this platform
-        action_select_all = menu.addAction("Select All Games")
+        action_select_all = menu.addAction(i18n.tr("Select All Games"))
         action_select_all.triggered.connect(self._select_all_games)
 
         # Deselect all games
-        action_select_none = menu.addAction("Deselect All Games")
+        action_select_none = menu.addAction(i18n.tr("Deselect All Games"))
         action_select_none.triggered.connect(self._select_no_games)
 
         menu.addSeparator()
 
         # Open platform output folder
-        action_open_output = menu.addAction("Open Output Folder")
+        action_open_output = menu.addAction(i18n.tr("Open Output Folder"))
         action_open_output.triggered.connect(lambda: self._open_platform_output(platform_key))
 
         # Delete all assets for platform
-        action_delete_all = menu.addAction(f"Delete All {platform_key} Assets")
+        action_delete_all = menu.addAction(i18n.tr("Delete All {platform} Assets", platform=platform_key))
         action_delete_all.triggered.connect(lambda: self._delete_platform_assets(platform_key))
 
         menu.exec(self.platform_tree.mapToGlobal(position))
@@ -2519,7 +2517,7 @@ if ($device) {{
 
         platform_dir = output_dir / platform_key
         if not platform_dir.exists():
-            QMessageBox.information(self, "No Assets", f"No assets folder found for {platform_key}.")
+            QMessageBox.information(self, i18n.tr("No Assets"), i18n.tr("No assets folder found for {platform}.", platform=platform_key))
             return
 
         deleted_count = 0
@@ -2532,8 +2530,8 @@ if ($device) {{
                     self._on_log(f"Failed to delete {file.name}: {e}")
 
         QMessageBox.information(
-            self, "Assets Deleted",
-            f"Deleted {deleted_count} asset file(s) from {platform_key}."
+            self, i18n.tr("Assets Deleted"),
+            i18n.tr("Deleted {n} asset file(s) from {platform}.", n=deleted_count, platform=platform_key)
         )
 
     def _filter_games(self, text):
@@ -2589,23 +2587,23 @@ if ($device) {{
         menu.setObjectName("context_menu")
 
         # Generate icon for this game
-        action_generate = menu.addAction("Generate Icon")
+        action_generate = menu.addAction(i18n.tr("Generate Icon"))
         action_generate.triggered.connect(lambda: self._generate_single_game(data))
 
         # Generate with interactive selection
-        action_interactive = menu.addAction("Generate (Choose Artwork)")
+        action_interactive = menu.addAction(i18n.tr("Generate (Choose Artwork)"))
         action_interactive.triggered.connect(lambda: self._generate_single_game(data, interactive=True))
 
         menu.addSeparator()
 
         # Search on SteamGridDB
-        action_search_sgdb = menu.addAction("Search on SteamGridDB")
+        action_search_sgdb = menu.addAction(i18n.tr("Search on SteamGridDB"))
         action_search_sgdb.triggered.connect(
             lambda: QDesktopServices.openUrl(QUrl(f"https://www.steamgriddb.com/search/grids?term={title}"))
         )
 
         # Search on IGDB
-        action_search_igdb = menu.addAction("Search on IGDB")
+        action_search_igdb = menu.addAction(i18n.tr("Search on IGDB"))
         action_search_igdb.triggered.connect(
             lambda: QDesktopServices.openUrl(QUrl(f"https://www.igdb.com/search?utf8=%E2%9C%93&type=1&q={title}"))
         )
@@ -2613,12 +2611,12 @@ if ($device) {{
         menu.addSeparator()
 
         # Preview existing assets
-        action_preview = menu.addAction("Preview Assets")
+        action_preview = menu.addAction(i18n.tr("Preview Assets"))
         action_preview.triggered.connect(lambda: self._preview_game_assets(data))
 
         # Open game folder (if local)
         if path and not path.startswith("manual://") and not path.startswith("iisu://"):
-            action_open_folder = menu.addAction("Open Game Folder")
+            action_open_folder = menu.addAction(i18n.tr("Open Game Folder"))
             action_open_folder.triggered.connect(
                 lambda: QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(path).parent)))
             )
@@ -2626,13 +2624,13 @@ if ($device) {{
         menu.addSeparator()
 
         # Delete assets option
-        action_delete = menu.addAction("Delete Local Assets")
+        action_delete = menu.addAction(i18n.tr("Delete Local Assets"))
         action_delete.triggered.connect(lambda: self._delete_game_assets(data))
 
         menu.addSeparator()
 
         # Hide title option
-        action_hide = menu.addAction("Hide Title")
+        action_hide = menu.addAction(i18n.tr("Hide Title"))
         action_hide.triggered.connect(lambda: self._hide_game(data))
 
         # Show the menu at cursor position
@@ -2796,10 +2794,10 @@ if ($device) {{
             tabs.addTab(self._create_asset_preview_widget(device_assets, "Device"), f"Device ({total_device})")
             layout.addWidget(tabs, 1)
         elif total_local > 0:
-            layout.addWidget(QLabel(f"Found {total_local} local asset(s):"))
+            layout.addWidget(QLabel(i18n.tr("Found {n} local asset(s):", n=total_local)))
             layout.addWidget(self._create_asset_preview_widget(local_assets, "Local"), 1)
         else:
-            layout.addWidget(QLabel(f"Found {total_device} device asset(s):"))
+            layout.addWidget(QLabel(i18n.tr("Found {n} device asset(s):", n=total_device)))
             layout.addWidget(self._create_asset_preview_widget(device_assets, "Device"), 1)
 
         # Close button
@@ -2863,7 +2861,7 @@ if ($device) {{
                     preview.setPixmap(pixmap)
                     preview.setToolTip(tooltip)
                 else:
-                    preview.setText("Error")
+                    preview.setText(i18n.tr("Error"))
 
                 row = i // 4
                 col = i % 4
@@ -3000,9 +2998,9 @@ if ($device) {{
         # Open file dialog
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            f"Select {asset_type.title()} Image for '{title}'",
+            i18n.tr("Select {type} Image for '{title}'", type=asset_type.title(), title=title),
             "",
-            "Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp);;All Files (*)"
+            i18n.tr("Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp);;All Files (*)")
         )
 
         if not file_path:
@@ -3040,9 +3038,9 @@ if ($device) {{
             self._on_log(f"Uploaded {asset_type} for '{title}': {output_path}")
             QMessageBox.information(
                 self,
-                "Upload Complete",
-                f"{asset_type.title()} uploaded successfully for '{title}'.\n\n"
-                f"Saved to: {output_path}"
+                i18n.tr("Upload Complete"),
+                i18n.tr("{type} uploaded successfully for '{title}'.", type=asset_type.title(), title=title) + "\n\n"
+                f"{i18n.tr('Saved to:')} {output_path}"
             )
 
             # Refresh the card's asset status
@@ -3060,8 +3058,8 @@ if ($device) {{
             self._on_log(f"Failed to upload {asset_type}: {e}")
             QMessageBox.warning(
                 self,
-                "Upload Failed",
-                f"Failed to upload {asset_type} for '{title}':\n{e}"
+                i18n.tr("Upload Failed"),
+                i18n.tr("Failed to upload {type} for '{title}':", type=asset_type, title=title) + f"\n{e}"
             )
 
     def _delete_game_assets(self, game_data: Dict):
@@ -3072,10 +3070,10 @@ if ($device) {{
         # Confirm deletion
         reply = QMessageBox.question(
             self,
-            "Delete Assets",
-            f"Delete all generated assets for '{title}'?\n\n"
-            f"This will remove icons, heroes, and other generated files.\n"
-            f"This cannot be undone.",
+            i18n.tr("Delete Assets"),
+            i18n.tr("Delete all generated assets for '{title}'?", title=title) + "\n\n"
+            f"{i18n.tr('This will remove icons, heroes, and other generated files.')}\\n"
+            f"{i18n.tr('This cannot be undone.')}",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -3094,7 +3092,7 @@ if ($device) {{
         # Find and delete assets
         platform_dir = output_dir / platform
         if not platform_dir.exists():
-            QMessageBox.information(self, "No Assets", "No assets found to delete.")
+            QMessageBox.information(self, i18n.tr("No Assets"), i18n.tr("No assets found to delete."))
             return
 
         clean_title = "".join(c for c in title if c.isalnum() or c in " -_").strip()
@@ -3112,11 +3110,11 @@ if ($device) {{
 
         if deleted_count > 0:
             QMessageBox.information(
-                self, "Assets Deleted",
-                f"Deleted {deleted_count} asset file(s) for '{title}'."
+                self, i18n.tr("Assets Deleted"),
+                i18n.tr("Deleted {n} asset file(s) for '{title}'.", n=deleted_count, title=title)
             )
         else:
-            QMessageBox.information(self, "No Assets", "No matching assets found to delete.")
+            QMessageBox.information(self, i18n.tr("No Assets"), i18n.tr("No matching assets found to delete."))
 
     def _get_selected_games(self) -> List[Dict]:
         """Get list of selected games with their data from game cards."""
@@ -3136,16 +3134,16 @@ if ($device) {{
         selected = self._get_selected_games()
 
         if not selected:
-            QMessageBox.information(self, "No Selection", "Please select games to process.")
+            QMessageBox.information(self, i18n.tr("No Selection"), i18n.tr("Please select games to process."))
             return
 
         # Show confirmation dialog for mass generation
         count = len(selected)
         reply = QMessageBox.question(
             self,
-            "Confirm Generation",
-            f"Are you sure you want to generate assets for {count} game{'s' if count != 1 else ''}?\n\n"
-            f"This will scrape artwork and create icons for all selected games.",
+            i18n.tr("Confirm Generation"),
+            i18n.tr("Are you sure you want to generate assets for {count} game(s)?", count=count) + "\n\n"
+            f"{i18n.tr('This will scrape artwork and create icons for all selected games.')}",
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -3163,13 +3161,13 @@ if ($device) {{
         # Load config for processing
         cfg_path = Path(self.config_path)
         if not cfg_path.exists():
-            QMessageBox.warning(self, "Config Missing", "Configuration file not found.")
+            QMessageBox.warning(self, i18n.tr("Config Missing"), i18n.tr("Configuration file not found."))
             return
 
         self.progress.setValue(0)
         self.btn_process.setEnabled(False)
         self.btn_cancel.setEnabled(True)
-        self.status_label.setText("Processing...")
+        self.status_label.setText(i18n.tr("Processing..."))
         self._clear_preview()
 
         self._cancel_token = run_backend.CancelToken()
@@ -3268,7 +3266,7 @@ if ($device) {{
         """Cancel ongoing processing."""
         if self._cancel_token:
             self._cancel_token.cancel()
-            self.status_label.setText("Cancelling...")
+            self.status_label.setText(i18n.tr("Cancelling..."))
         self.btn_cancel.setEnabled(False)
 
     def _on_progress(self, done: int, total: int):
@@ -3282,7 +3280,7 @@ if ($device) {{
         """Handle current item update - show what's being processed."""
         # Truncate long titles for display
         display_title = title if len(title) <= 40 else title[:37] + "..."
-        self.status_label.setText(f"Processing: {display_title} [{platform}]")
+        self.status_label.setText(i18n.tr("Processing: {title} [{platform}]", title=display_title, platform=platform))
 
     def _on_log(self, msg: str):
         """Handle log message."""
@@ -3456,7 +3454,7 @@ if ($device) {{
         missing_heroes = sum(1 for card in self._game_cards if not card.has_hero)
         missing_logos = sum(1 for card in self._game_cards if not card.has_logo)
         total_missing = missing_icons + missing_heroes + missing_logos
-        self.missing_count_label.setText(f"{total_missing} missing assets")
+        self.missing_count_label.setText(i18n.tr("{n} missing assets", n=total_missing))
 
         print(f"[DEBUG] _refresh_current_platform_assets: missing={total_missing} (icons={missing_icons}, heroes={missing_heroes}, logos={missing_logos})")
 
@@ -3475,7 +3473,7 @@ if ($device) {{
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(output_dir.absolute())))
 
         except Exception as e:
-            QMessageBox.warning(self, "Error", f"Failed to open output: {e}")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Failed to open output: {error}", error=e))
 
     def set_rom_path(self, path: str):
         """Set the ROM directory path (called from settings)."""
@@ -3496,26 +3494,26 @@ if ($device) {{
         from PySide6.QtWidgets import QDialog, QTextEdit, QDialogButtonBox, QComboBox
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Add Games Manually")
+        dialog.setWindowTitle(i18n.tr("Add Games Manually"))
         dialog.setMinimumSize(500, 400)
 
         layout = QVBoxLayout(dialog)
 
         # Instructions
         instructions = QLabel(
-            "Enter game titles below (one per line).\n"
+            i18n.tr("Enter game titles below (one per line).\n"
             "This is useful when MTP device scanning is too slow.\n\n"
             "Example:\n"
             "  Super Mario World\n"
             "  The Legend of Zelda\n"
-            "  Sonic the Hedgehog"
+            "  Sonic the Hedgehog")
         )
         instructions.setObjectName("label_muted")
         layout.addWidget(instructions)
 
         # Platform selector
         platform_row = QHBoxLayout()
-        platform_row.addWidget(QLabel("Platform:"))
+        platform_row.addWidget(QLabel(i18n.tr("Platform:")))
         platform_combo = QComboBox()
 
         # Add common platforms
@@ -3545,9 +3543,9 @@ if ($device) {{
         layout.addLayout(platform_row)
 
         # Text area for game titles
-        layout.addWidget(QLabel("Game Titles:"))
+        layout.addWidget(QLabel(i18n.tr("Game Titles:")))
         text_edit = QTextEdit()
-        text_edit.setPlaceholderText("Enter game titles, one per line...")
+        text_edit.setPlaceholderText(i18n.tr("Enter game titles, one per line..."))
         layout.addWidget(text_edit, 1)
 
         # Buttons
@@ -3581,8 +3579,8 @@ if ($device) {{
             item.setData(0, Qt.UserRole + 1, games)
             self.platform_tree.addTopLevelItem(item)
 
-            self.platform_stats.setText(f"1 platform, {len(games)} games (manually added)")
-            self.status_label.setText(f"Added {len(games)} games manually")
+            self.platform_stats.setText(i18n.tr("1 platform, {n} games (manually added)", n=len(games)))
+            self.status_label.setText(i18n.tr("Added {n} games manually", n=len(games)))
 
             # Auto-select the platform
             self.platform_tree.setCurrentItem(item)
@@ -3597,11 +3595,11 @@ if ($device) {{
             # Offer to install ADB automatically
             reply = QMessageBox.question(
                 self,
-                "ADB Not Found",
-                "ADB (Android Debug Bridge) is not installed.\n\n"
+                i18n.tr("ADB Not Found"),
+                i18n.tr("ADB (Android Debug Bridge) is not installed.\n\n"
                 "ADB is required for fast scanning of Android devices.\n"
                 "It will be downloaded from Google's official servers (~10MB).\n\n"
-                "Do you want to download and install ADB automatically?",
+                "Do you want to download and install ADB automatically?"),
                 QMessageBox.Yes | QMessageBox.No | QMessageBox.Help
             )
 
@@ -3609,7 +3607,7 @@ if ($device) {{
                 # Show manual instructions
                 QMessageBox.information(
                     self,
-                    "Manual ADB Setup",
+                    i18n.tr("Manual ADB Setup"),
                     get_setup_instructions()
                 )
                 return
@@ -3628,26 +3626,26 @@ if ($device) {{
         if not devices:
             QMessageBox.warning(
                 self,
-                "No ADB Devices",
-                "No Android devices detected via ADB.\n\n"
+                i18n.tr("No ADB Devices"),
+                i18n.tr("No Android devices detected via ADB.\n\n"
                 "Make sure:\n"
                 "1. USB Debugging is enabled on your device\n"
                 "   (Settings > Developer Options > USB Debugging)\n\n"
                 "2. Device is connected via USB cable\n\n"
                 "3. You authorized USB debugging when prompted on device\n\n"
-                "4. Try running 'adb devices' in terminal to troubleshoot"
+                "4. Try running 'adb devices' in terminal to troubleshoot")
             )
             return
 
         # Show device selector dialog
         dialog = QDialog(self)
-        dialog.setWindowTitle("Scan iiSU Assets - Android Device")
+        dialog.setWindowTitle(i18n.tr("Scan iiSU Assets - Android Device"))
         dialog.setMinimumWidth(500)
 
         layout = QVBoxLayout(dialog)
 
         # Device selector
-        layout.addWidget(QLabel("Select Android Device:"))
+        layout.addWidget(QLabel(i18n.tr("Select Android Device:")))
         device_combo = QComboBox()
         for device_id, status in devices:
             device_combo.addItem(f"{device_id} ({status})", device_id)
@@ -3655,33 +3653,30 @@ if ($device) {{
 
         # iiSU Assets path input - default to the config path
         iisu_default_path = self.device_settings.get("path", "/sdcard/Android/media/com.iisulauncher/iiSULauncher/assets/media/roms/consoles")
-        layout.addWidget(QLabel("iiSU Assets Path on Device:"))
+        layout.addWidget(QLabel(i18n.tr("iiSU Assets Path on Device:")))
         path_input = QLineEdit()
         path_input.setText(iisu_default_path)
         path_input.setPlaceholderText("/sdcard/Android/media/com.iisulauncher/iiSULauncher/assets/media/roms/consoles")
         layout.addWidget(path_input)
 
         # ROM Source path (optional sync)
-        rom_source_label = QLabel("ROM Source Path (optional):")
+        rom_source_label = QLabel(i18n.tr("ROM Source Path (optional):"))
         layout.addWidget(rom_source_label)
         rom_path_input = QLineEdit()
-        rom_path_input.setPlaceholderText("e.g. /sdcard/ROMs — leave empty to scan assets only")
+        rom_path_input.setPlaceholderText(i18n.tr("e.g. /sdcard/ROMs — leave empty to scan assets only"))
         layout.addWidget(rom_path_input)
 
         # Help info
         help_info = QLabel(
-            "<span style='color: #888; font-size: 10px;'>"
-            "This scans the iiSU Launcher assets folder for games that need artwork.<br>"
-            "If games are missing, enter your ROM directory above to create<br>"
-            "matching asset folders automatically before scanning."
-            "</span>"
+            f"<span style='color: #888; font-size: 10px;'>"
+            f"{i18n.tr('This scans the iiSU Launcher assets folder for games that need artwork.')}"
         )
         help_info.setWordWrap(True)
         layout.addWidget(help_info)
 
         # Buttons
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
-        buttons.button(QDialogButtonBox.Ok).setText("Scan Assets")
+        buttons.button(QDialogButtonBox.Ok).setText(i18n.tr("Scan Assets"))
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -3700,7 +3695,7 @@ if ($device) {{
 
             # If ROM source path provided, sync folders first
             if rom_source_path:
-                self.status_label.setText(f"Syncing game folders from ROM directory...")
+                self.status_label.setText(i18n.tr("Syncing game folders from ROM directory..."))
                 QApplication.processEvents()
 
                 try:
@@ -3710,14 +3705,14 @@ if ($device) {{
                     # Run the sync thread and wait for it
                     sync.start()
                     sync.wait(timeout=120000)  # 2 minute timeout
-                    self.status_label.setText(f"Folder sync complete. Scanning assets...")
+                    self.status_label.setText(i18n.tr("Folder sync complete. Scanning assets..."))
                     QApplication.processEvents()
                 except Exception as e:
                     print(f"[ADB SCAN] ROM folder sync error: {e}")
-                    self.status_label.setText(f"Folder sync failed ({e}), continuing with scan...")
+                    self.status_label.setText(i18n.tr("Folder sync failed ({error}), continuing with scan...", error=e))
                     QApplication.processEvents()
 
-            self.status_label.setText(f"Scanning iiSU assets via ADB: {device_id}...")
+            self.status_label.setText(i18n.tr("Scanning iiSU assets via ADB: {device}...", device=device_id))
             QApplication.processEvents()
 
             # Clear previous data
@@ -3734,15 +3729,15 @@ if ($device) {{
             if not results:
                 QMessageBox.warning(
                     self,
-                    "No Games Found",
-                    f"No game folders found at: {assets_path}\n\n"
-                    "Make sure:\n"
-                    "- iiSU Launcher is installed on your device\n"
-                    "- The assets path is correct\n"
-                    "- Platform folders exist (nes, snes, gba, etc.)\n\n"
-                    "Try 'Add Games Manually' to enter game titles directly."
+                    i18n.tr("No Games Found"),
+                    i18n.tr("No game folders found at: {path}", path=assets_path) + "\n\n"
+                    f"{i18n.tr('Make sure:')}\\n"
+                    f"- {i18n.tr('iiSU Launcher is installed on your device')}\\n"
+                    f"- {i18n.tr('The assets path is correct')}\\n"
+                    f"- {i18n.tr('Platform folders exist (nes, snes, gba, etc.)')}\\n\\n"
+                    f"{i18n.tr("Try 'Add Games Manually' to enter game titles directly.")}"
                 )
-                self.status_label.setText("ADB scan: No games found")
+                self.status_label.setText(i18n.tr("ADB scan: No games found"))
                 return
 
             # Populate platform tree
@@ -3778,8 +3773,8 @@ if ($device) {{
 
                 self.platform_tree.addTopLevelItem(item)
 
-            self.platform_stats.setText(f"{len(results)} platforms, {total_games} games ({missing_icons} missing icons)")
-            self.status_label.setText(f"iiSU scan complete: {total_games} games, {missing_icons} need artwork")
+            self.platform_stats.setText(i18n.tr("{n} platforms, {games} games ({missing} missing icons)", n=len(results), games=total_games, missing=missing_icons))
+            self.status_label.setText(i18n.tr("iiSU scan complete: {games} games, {missing} need artwork", games=total_games, missing=missing_icons))
 
             # Update path display
             self.path_input.setText(f"iisu://{device_id}{assets_path}")
@@ -4038,7 +4033,7 @@ if ($device) {{
 
         layout = QVBoxLayout(progress_dialog)
 
-        status_label = QLabel("Downloading Android SDK Platform Tools...")
+        status_label = QLabel(i18n.tr("Downloading Android SDK Platform Tools..."))
         layout.addWidget(status_label)
 
         progress_bar = QProgressBar()
@@ -4075,7 +4070,7 @@ if ($device) {{
                 progress_bar.setValue(pct)
                 mb_downloaded = downloaded / (1024 * 1024)
                 mb_total = total / (1024 * 1024)
-                status_label.setText(f"Downloading... {mb_downloaded:.1f} / {mb_total:.1f} MB")
+                status_label.setText(i18n.tr("Downloading... {current:.1f} / {total:.1f} MB", current=mb_downloaded, total=mb_total))
             # Process events to keep UI responsive
             from PySide6.QtWidgets import QApplication
             QApplication.processEvents()
@@ -4115,12 +4110,12 @@ if ($device) {{
         except Exception as e:
             progress_dialog.close()
             if "cancelled" in str(e).lower():
-                self.status_label.setText("ADB installation cancelled")
+                self.status_label.setText(i18n.tr("ADB installation cancelled"))
             else:
                 QMessageBox.warning(
                     self,
-                    "Installation Error",
-                    f"Error during installation:\n\n{str(e)}"
+                    i18n.tr("Installation Error"),
+                    i18n.tr("Error during installation:\n\n{error}", error=str(e))
                 )
 
     def _show_logs_dialog(self):
@@ -4128,13 +4123,13 @@ if ($device) {{
         from PySide6.QtWidgets import QDialog, QTextEdit, QDialogButtonBox, QApplication
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Processing Logs")
+        dialog.setWindowTitle(i18n.tr("Processing Logs"))
         dialog.setMinimumSize(700, 500)
 
         layout = QVBoxLayout(dialog)
 
         # Info label
-        info_label = QLabel(f"{len(self._log_messages)} log entries")
+        info_label = QLabel(i18n.tr("{n} log entries", n=len(self._log_messages)))
         info_label.setObjectName("label_muted")
         layout.addWidget(info_label)
 
@@ -4158,26 +4153,26 @@ if ($device) {{
         # Buttons
         button_row = QHBoxLayout()
 
-        btn_clear = QPushButton("Clear Logs")
-        btn_clear.clicked.connect(lambda: (self._log_messages.clear(), log_text.clear(), info_label.setText("0 log entries")))
+        btn_clear = QPushButton(i18n.tr("Clear Logs"))
+        btn_clear.clicked.connect(lambda: (self._log_messages.clear(), log_text.clear(), info_label.setText(i18n.tr("0 log entries"))))
         button_row.addWidget(btn_clear)
 
         def copy_to_clipboard():
             if self._log_messages:
                 clipboard = QApplication.clipboard()
                 clipboard.setText("\n".join(self._log_messages))
-                btn_copy.setText("Copied!")
+                btn_copy.setText(i18n.tr("Copied!"))
                 # Reset button text after 2 seconds
                 from PySide6.QtCore import QTimer
-                QTimer.singleShot(2000, lambda: btn_copy.setText("Copy to Clipboard"))
+                QTimer.singleShot(2000, lambda: btn_copy.setText(i18n.tr("Copy to Clipboard")))
 
-        btn_copy = QPushButton("Copy to Clipboard")
+        btn_copy = QPushButton(i18n.tr("Copy to Clipboard"))
         btn_copy.clicked.connect(copy_to_clipboard)
         button_row.addWidget(btn_copy)
 
         button_row.addStretch()
 
-        btn_close = QPushButton("Close")
+        btn_close = QPushButton(i18n.tr("Close"))
         btn_close.clicked.connect(dialog.accept)
         button_row.addWidget(btn_close)
 
@@ -4190,12 +4185,12 @@ if ($device) {{
         if self._preview_visible:
             self.preview_scroll_area.hide()
             self.btn_hide_preview.setText("+")
-            self.btn_hide_preview.setToolTip("Expand preview")
+            self.btn_hide_preview.setToolTip(i18n.tr("Expand preview"))
             self._preview_visible = False
         else:
             self.preview_scroll_area.show()
             self.btn_hide_preview.setText("-")
-            self.btn_hide_preview.setToolTip("Collapse preview")
+            self.btn_hide_preview.setToolTip(i18n.tr("Collapse preview"))
             self._preview_visible = True
 
     def _popout_preview(self):
@@ -4210,7 +4205,7 @@ if ($device) {{
         from PySide6.QtWidgets import QDialog
 
         self._preview_popout_window = QDialog(self)
-        self._preview_popout_window.setWindowTitle("Preview - iiSU Asset Tool")
+        self._preview_popout_window.setWindowTitle(i18n.tr("Preview - iiSU Asset Tool"))
         self._preview_popout_window.setMinimumSize(600, 400)
         self._preview_popout_window.setAttribute(Qt.WA_DeleteOnClose)
         self._preview_popout_window.finished.connect(self._on_popout_closed)

@@ -24,6 +24,7 @@ from preview_window import show_preview_dialog
 from source_priority_widget import SourcePriorityWidget
 from options_dialog import OptionsDialog
 from app_paths import get_borders_dir, get_config_path, get_config, invalidate_config_cache
+import i18n
 
 
 class BackendCallbacks(QObject):
@@ -78,34 +79,34 @@ class IconGeneratorTab(QWidget):
         search_row.setSpacing(8)
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search games on SteamGridDB...")
+        self.search_input.setPlaceholderText(i18n.tr("Search games on SteamGridDB..."))
         self.search_input.setMinimumHeight(40)
         self.search_input.returnPressed.connect(self._perform_search)
         search_row.addWidget(self.search_input, 1)
 
         # Hidden mode selector (kept for compatibility, but always "Search by Name")
         self.search_mode = QComboBox()
-        self.search_mode.addItems(["Search by Name", "Process All Games", "Filter by Letter"])
+        self.search_mode.addItems([i18n.tr("Search by Name"), i18n.tr("Process All Games"), i18n.tr("Filter by Letter")])
         self.search_mode.setVisible(False)  # Hidden - mode selection moved to processing dialog
 
         # Hidden letter filter (kept for compatibility)
         self.letter_filter = QComboBox()
-        self.letter_filter.addItems(["All"] + [chr(i) for i in range(ord('A'), ord('Z')+1)] + ["0-9", "#"])
+        self.letter_filter.addItems([i18n.tr("All")] + [chr(i) for i in range(ord('A'), ord('Z')+1)] + ["0-9", "#"])
         self.letter_filter.setVisible(False)
 
-        self.btn_search = QPushButton("Search")
+        self.btn_search = QPushButton(i18n.tr("Search"))
         self.btn_search.setObjectName("btn_primary")
         self.btn_search.setMinimumHeight(40)
         self.btn_search.setMinimumWidth(90)
-        self.btn_search.setToolTip("Search SteamGridDB for games")
+        self.btn_search.setToolTip(i18n.tr("Search SteamGridDB for games"))
         self.btn_search.clicked.connect(self._perform_search)
         search_row.addWidget(self.btn_search)
 
         # Settings button
-        self.btn_settings = QPushButton("Settings")
+        self.btn_settings = QPushButton(i18n.tr("Settings"))
         self.btn_settings.setMinimumHeight(40)
         self.btn_settings.setMinimumWidth(70)
-        self.btn_settings.setToolTip("API keys, sources, output format")
+        self.btn_settings.setToolTip(i18n.tr("API keys, sources, output format"))
         self.btn_settings.clicked.connect(self.open_options)
         self.btn_settings.setObjectName("btn_secondary")
         search_row.addWidget(self.btn_settings)
@@ -117,11 +118,11 @@ class IconGeneratorTab(QWidget):
         options_row.setSpacing(16)
 
         # Region preference (compact)
-        region_label = QLabel("Region:")
+        region_label = QLabel(i18n.tr("Region:"))
         region_label.setObjectName("label_muted")
         options_row.addWidget(region_label)
         self.region_combo = QComboBox()
-        self.region_combo.setToolTip("Prefer artwork from a specific region")
+        self.region_combo.setToolTip(i18n.tr("Prefer artwork from a specific region"))
         self.region_combo.addItem("Any", "any")
         self.region_combo.addItem("USA", "USA")
         self.region_combo.addItem("Europe", "EUR")
@@ -133,8 +134,8 @@ class IconGeneratorTab(QWidget):
         options_row.addSpacing(8)
 
         # Interactive mode toggle
-        self.interactive_mode = QCheckBox("Interactive Mode")
-        self.interactive_mode.setToolTip("Choose artwork manually for each game")
+        self.interactive_mode = QCheckBox(i18n.tr("Interactive Mode"))
+        self.interactive_mode.setToolTip(i18n.tr("Choose artwork manually for each game"))
         self.interactive_mode.setChecked(True)
         self.interactive_mode.stateChanged.connect(self._on_interactive_mode_changed)
         self.interactive_mode.setObjectName("label_muted")
@@ -161,7 +162,7 @@ class IconGeneratorTab(QWidget):
         action_row.setSpacing(8)
 
         # Primary action button
-        self.btn_start = QPushButton("Generate Icons")
+        self.btn_start = QPushButton(i18n.tr("Generate Icons"))
         self.btn_start.setObjectName("btn_start")
         self.btn_start.setMinimumHeight(42)
         self.btn_start.setMinimumWidth(150)
@@ -169,11 +170,11 @@ class IconGeneratorTab(QWidget):
         action_row.addWidget(self.btn_start)
 
         # Cancel button
-        self.btn_cancel = QPushButton("Cancel")
+        self.btn_cancel = QPushButton(i18n.tr("Cancel"))
         self.btn_cancel.setMinimumHeight(42)
         self.btn_cancel.setMinimumWidth(70)
         self.btn_cancel.setEnabled(False)
-        self.btn_cancel.setToolTip("Cancel processing")
+        self.btn_cancel.setToolTip(i18n.tr("Cancel processing"))
         self.btn_cancel.clicked.connect(self.cancel_job)
         self.btn_cancel.setObjectName("btn_secondary")
         action_row.addWidget(self.btn_cancel)
@@ -184,23 +185,23 @@ class IconGeneratorTab(QWidget):
         self.progress.setValue(0)
         self.progress.setMinimumHeight(42)
         self.progress.setTextVisible(True)
-        self.progress.setFormat("Ready")
+        self.progress.setFormat(i18n.tr("Ready"))
         action_row.addWidget(self.progress, 1)
 
         # Output folder button
-        self.btn_open_out = QPushButton("Output")
+        self.btn_open_out = QPushButton(i18n.tr("Output"))
         self.btn_open_out.setMinimumHeight(42)
         self.btn_open_out.setMinimumWidth(65)
-        self.btn_open_out.setToolTip("Open output folder")
+        self.btn_open_out.setToolTip(i18n.tr("Open output folder"))
         self.btn_open_out.clicked.connect(self.open_output_dir)
         self.btn_open_out.setObjectName("btn_secondary")
         action_row.addWidget(self.btn_open_out)
 
         # Logs button
-        self.btn_show_logs = QPushButton("Logs")
+        self.btn_show_logs = QPushButton(i18n.tr("Logs"))
         self.btn_show_logs.setMinimumHeight(42)
         self.btn_show_logs.setMinimumWidth(55)
-        self.btn_show_logs.setToolTip("View processing logs")
+        self.btn_show_logs.setToolTip(i18n.tr("View processing logs"))
         self.btn_show_logs.clicked.connect(self._show_logs_dialog)
         self.btn_show_logs.setObjectName("btn_secondary")
         action_row.addWidget(self.btn_show_logs)
@@ -221,11 +222,11 @@ class IconGeneratorTab(QWidget):
         search_results_layout.setSpacing(6)
 
         results_header_row = QHBoxLayout()
-        search_header = QLabel("Results")
+        search_header = QLabel(i18n.tr("Results"))
         search_header.setObjectName("label_header")
         results_header_row.addWidget(search_header)
         results_header_row.addStretch()
-        self.search_status = QLabel("Enter a game name and click Search")
+        self.search_status = QLabel(i18n.tr("Enter a game name and click Search"))
         self.search_status.setObjectName("label_muted")
         results_header_row.addWidget(self.search_status)
         search_results_layout.addLayout(results_header_row)
@@ -246,7 +247,7 @@ class IconGeneratorTab(QWidget):
         preview_layout.setContentsMargins(10, 10, 10, 10)
         preview_layout.setSpacing(6)
 
-        preview_header = QLabel("Generated Icons")
+        preview_header = QLabel(i18n.tr("Generated Icons"))
         preview_header.setObjectName("label_header")
         preview_layout.addWidget(preview_header)
 
@@ -284,31 +285,31 @@ class IconGeneratorTab(QWidget):
 
         # Platform header row
         platform_header_row = QHBoxLayout()
-        platform_title = QLabel("Platforms")
+        platform_title = QLabel(i18n.tr("Platforms"))
         platform_title.setObjectName("label_header")
         platform_header_row.addWidget(platform_title)
 
         # Selection counter badge
-        self.platform_counter = QLabel("0 selected")
+        self.platform_counter = QLabel(i18n.tr("0 selected"))
         self.platform_counter.setObjectName("badge")
         platform_header_row.addWidget(self.platform_counter)
 
         platform_header_row.addStretch()
 
         # Quick actions
-        btn_all = QPushButton("All")
+        btn_all = QPushButton(i18n.tr("All"))
         btn_all.setObjectName("btn_select")
         btn_all.setMinimumHeight(26)
         btn_all.setMinimumWidth(50)
-        btn_all.setToolTip("Select all visible platforms")
+        btn_all.setToolTip(i18n.tr("Select all visible platforms"))
         btn_all.clicked.connect(self.select_all)
         platform_header_row.addWidget(btn_all)
 
-        btn_none = QPushButton("None")
+        btn_none = QPushButton(i18n.tr("None"))
         btn_none.setObjectName("btn_small")
         btn_none.setMinimumHeight(26)
         btn_none.setMinimumWidth(50)
-        btn_none.setToolTip("Clear selection")
+        btn_none.setToolTip(i18n.tr("Clear selection"))
         btn_none.clicked.connect(self.select_none)
         platform_header_row.addWidget(btn_none)
 
@@ -334,7 +335,7 @@ class IconGeneratorTab(QWidget):
         filter_row.addStretch()
 
         # Sort dropdown (compact)
-        sort_label = QLabel("Sort:")
+        sort_label = QLabel(i18n.tr("Sort:"))
         sort_label.setObjectName("label_muted")
         filter_row.addWidget(sort_label)
         self.sort_mode = QComboBox()
@@ -347,7 +348,7 @@ class IconGeneratorTab(QWidget):
         filter_row.addSpacing(8)
 
         # Icon size control
-        size_label = QLabel("Size:")
+        size_label = QLabel(i18n.tr("Size:"))
         size_label.setObjectName("label_muted")
         filter_row.addWidget(size_label)
         self.icon_size_combo = QComboBox()
@@ -355,7 +356,7 @@ class IconGeneratorTab(QWidget):
         self.icon_size_combo.setCurrentIndex(1)  # Default to Medium (72px)
         self.icon_size_combo.setMinimumWidth(50)
         self.icon_size_combo.setMinimumHeight(24)
-        self.icon_size_combo.setToolTip("Platform icon display size")
+        self.icon_size_combo.setToolTip(i18n.tr("Platform icon display size"))
         self.icon_size_combo.currentIndexChanged.connect(self._on_icon_size_changed)
         filter_row.addWidget(self.icon_size_combo)
 
@@ -665,10 +666,8 @@ class IconGeneratorTab(QWidget):
             # Show info about cropping when disabled
             QMessageBox.information(
                 self,
-                "All Dimensions Enabled",
-                "SteamGridDB will now show artwork of all dimensions.\n\n"
-                "In Interactive Mode, you can use the 'Crop' button on\n"
-                "non-square artwork to crop it to a square format."
+                i18n.tr("All Dimensions Enabled"),
+                i18n.tr("SteamGridDB will now show artwork of all dimensions.\n\nIn Interactive Mode, you can use the 'Crop' button on\nnon-square artwork to crop it to a square format.")
             )
 
     def _save_steamgriddb_setting_to_config(self):
@@ -701,19 +700,19 @@ class IconGeneratorTab(QWidget):
         from PySide6.QtWidgets import QDialog, QTextEdit, QDialogButtonBox
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Processing Logs")
+        dialog.setWindowTitle(i18n.tr("Processing Logs"))
         dialog.setMinimumSize(600, 400)
 
         layout = QVBoxLayout(dialog)
 
         log_view = QTextEdit()
         log_view.setReadOnly(True)
-        log_view.setPlainText(self.log_content if self.log_content else "No logs yet.")
+        log_view.setPlainText(self.log_content if self.log_content else i18n.tr("No logs yet."))
         layout.addWidget(log_view)
 
         # Buttons
         button_box = QDialogButtonBox()
-        clear_btn = button_box.addButton("Clear", QDialogButtonBox.ActionRole)
+        clear_btn = button_box.addButton(i18n.tr("Clear"), QDialogButtonBox.ActionRole)
         clear_btn.clicked.connect(lambda: (setattr(self, 'log_content', ''), log_view.clear()))
         button_box.addButton(QDialogButtonBox.Close)
         button_box.rejected.connect(dialog.reject)
@@ -788,7 +787,7 @@ class IconGeneratorTab(QWidget):
                 })
                 self.search_results_list.addItem(item)
 
-            self.search_status.setText(f"Found {len(results)} games. Select one and click 'Start Processing'")
+            self.search_status.setText(i18n.tr("Found {n} games. Select one and click 'Start Processing'", n=len(results)))
 
         # Use QThread for background search
         from PySide6.QtCore import QThread, Signal
@@ -1267,10 +1266,10 @@ class IconGeneratorTab(QWidget):
         """Update the platform selection counter badge."""
         count = len(self._get_selected_platforms())
         if count == 0:
-            self.platform_counter.setText("0 selected")
+            self.platform_counter.setText(i18n.tr("0 selected"))
             self.platform_counter.setObjectName("label_muted")
         else:
-            self.platform_counter.setText(f"{count} selected")
+            self.platform_counter.setText(i18n.tr("{count} selected", count=count))
             self.platform_counter.setObjectName("badge")
         # Force style recalculation after objectName change
         self.platform_counter.style().unpolish(self.platform_counter)
@@ -1430,7 +1429,7 @@ class IconGeneratorTab(QWidget):
     def on_progress(self, done: int, total: int):
         if total <= 0:
             self.progress.setValue(0)
-            self.progress.setFormat("Ready")
+            self.progress.setFormat(i18n.tr("Ready"))
             return
         pct = int(round((done / total) * 100))
         pct = max(0, min(100, pct))
@@ -1442,9 +1441,9 @@ class IconGeneratorTab(QWidget):
         self.btn_start.setEnabled(True)
         self.btn_cancel.setEnabled(False)
         if not ok:
-            self.progress.setFormat("Cancelled" if "cancel" in msg.lower() else "Error")
+            self.progress.setFormat(i18n.tr("Cancelled") if "cancel" in msg.lower() else i18n.tr("Error"))
         else:
-            self.progress.setFormat("Complete")
+            self.progress.setFormat(i18n.tr("Complete"))
             # Auto-push to device if enabled
             if hasattr(self, 'device_settings') and self.device_settings.get("enabled", False):
                 self._auto_push_to_device()
@@ -1494,7 +1493,7 @@ class IconGeneratorTab(QWidget):
         try:
             cfg = get_config()
         except Exception as e:
-            QMessageBox.warning(self, "Config Error", f"Failed to load config: {e}")
+            QMessageBox.warning(self, i18n.tr("Config Error"), i18n.tr("Failed to load config: {error}", error=e))
             return
 
         output_dir = Path(cfg.get("paths", {}).get("output_dir", "./output"))
@@ -1538,7 +1537,7 @@ class IconGeneratorTab(QWidget):
             return
 
         self.append_log(f"[DEVICE] Auto-pushing to device {device_id}...")
-        self.progress.setFormat("Pushing to device...")
+        self.progress.setFormat(i18n.tr("Pushing to device..."))
 
         # Find all game folders in output that have icon.png or icon.jpg
         pushed = 0
@@ -1595,7 +1594,7 @@ class IconGeneratorTab(QWidget):
 
         if pushed > 0:
             self.append_log(f"[DEVICE] Pushed {pushed} files to device ({errors} errors)")
-            self.progress.setFormat(f"Complete - {pushed} pushed")
+            self.progress.setFormat(i18n.tr("Complete - {n} pushed", n=pushed))
         else:
             self.append_log("[DEVICE] No files to push")
-            self.progress.setFormat("Complete")
+            self.progress.setFormat(i18n.tr("Complete"))

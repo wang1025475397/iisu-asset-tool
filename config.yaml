@@ -24,7 +24,7 @@ auto_centering:
   tolerance: 0.06
 background_music:
   enabled: false
-  volume: 50
+  volume: 41
 custom_borders:
   enabled: false
   path: ''
@@ -476,7 +476,8 @@ thegamesdb:
   prefer_image_type: boxart
   request_timeout_seconds: 30
 ui:
-  dark_mode: true
+  dark_mode: false
+  language: auto
   last_seen_version: 2.0.1
 updater:
   check_on_startup: true

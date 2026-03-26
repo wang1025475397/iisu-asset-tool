@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
 )
 
 from adb_setup import is_adb_installed
+import i18n
 
 
 def get_subprocess_kwargs():
@@ -484,7 +485,7 @@ class DeviceAssetDialog(QDialog):
 
     def __init__(self, parent=None, output_dir: str = "", device_path: str = ""):
         super().__init__(parent)
-        self.setWindowTitle("iiSU Device Assets Manager")
+        self.setWindowTitle(i18n.tr("iiSU Device Assets Manager"))
         self.setMinimumWidth(800)
         self.setMinimumHeight(600)
 
@@ -503,14 +504,14 @@ class DeviceAssetDialog(QDialog):
         layout.setSpacing(12)
 
         # Device Path Group
-        path_group = QGroupBox("iiSU Launcher Assets Path")
+        path_group = QGroupBox(i18n.tr("iiSU Launcher Assets Path"))
         path_layout = QHBoxLayout()
 
         self.device_path_input = QLineEdit(self.device_base_path)
         self.device_path_input.setPlaceholderText(self.IISU_DEFAULT_PATH)
         path_layout.addWidget(self.device_path_input, 1)
 
-        self.btn_scan = QPushButton("Scan iiSU Assets")
+        self.btn_scan = QPushButton(i18n.tr("Scan iiSU Assets"))
         self.btn_scan.clicked.connect(self._scan_device)
         path_layout.addWidget(self.btn_scan)
 
@@ -518,7 +519,7 @@ class DeviceAssetDialog(QDialog):
         layout.addWidget(path_group)
 
         # Status
-        self.status_label = QLabel("Click 'Scan iiSU Assets' to view game folders on device")
+        self.status_label = QLabel(i18n.tr("Click 'Scan iiSU Assets' to view game folders on device"))
         self.status_label.setObjectName("desc_status")
         layout.addWidget(self.status_label)
 
@@ -535,12 +536,12 @@ class DeviceAssetDialog(QDialog):
         device_layout = QVBoxLayout(device_widget)
         device_layout.setContentsMargins(0, 0, 0, 0)
 
-        device_header = QLabel("iiSU Game Folders (Device)")
+        device_header = QLabel(i18n.tr("iiSU Game Folders (Device)"))
         device_header.setObjectName("header")
         device_layout.addWidget(device_header)
 
         self.device_tree = QTreeWidget()
-        self.device_tree.setHeaderLabels(["Platform / Game", "Assets"])
+        self.device_tree.setHeaderLabels([i18n.tr("Platform / Game"), i18n.tr("Assets")])
         self.device_tree.setColumnWidth(0, 300)
         self.device_tree.itemSelectionChanged.connect(self._on_device_selection_changed)
         device_layout.addWidget(self.device_tree)
@@ -553,11 +554,11 @@ class DeviceAssetDialog(QDialog):
         local_layout.setContentsMargins(0, 0, 0, 0)
 
         local_header_layout = QHBoxLayout()
-        local_header = QLabel("Local Assets (Output)")
+        local_header = QLabel(i18n.tr("Local Assets (Output)"))
         local_header.setObjectName("header")
         local_header_layout.addWidget(local_header)
 
-        btn_browse_local = QPushButton("Browse...")
+        btn_browse_local = QPushButton(i18n.tr("Browse..."))
         btn_browse_local.clicked.connect(self._browse_local_output)
         local_header_layout.addWidget(btn_browse_local)
         local_layout.addLayout(local_header_layout)
@@ -567,7 +568,7 @@ class DeviceAssetDialog(QDialog):
         local_layout.addWidget(self.local_path_label)
 
         self.local_tree = QTreeWidget()
-        self.local_tree.setHeaderLabels(["Platform / Game", "Files"])
+        self.local_tree.setHeaderLabels([i18n.tr("Platform / Game"), i18n.tr("Files")])
         self.local_tree.setColumnWidth(0, 300)
         local_layout.addWidget(self.local_tree)
 
@@ -579,11 +580,11 @@ class DeviceAssetDialog(QDialog):
         layout.addWidget(splitter, 1)
 
         # ROM Folder Sync
-        sync_group = QGroupBox("Sync Game Folders from ROM Directory")
+        sync_group = QGroupBox(i18n.tr("Sync Game Folders from ROM Directory"))
         sync_group.setToolTip(
-            "If iiSU doesn't create game folders automatically, use this to scan\n"
+            i18n.tr("If iiSU doesn't create game folders automatically, use this to scan\n"
             "your ROM directory and create matching folders in the iiSU assets path.\n"
-            "This lets the asset tool detect games that are missing asset folders."
+            "This lets the asset tool detect games that are missing asset folders.")
         )
         sync_layout = QHBoxLayout()
 
@@ -591,10 +592,10 @@ class DeviceAssetDialog(QDialog):
         self.rom_path_input.setPlaceholderText("/sdcard/ROMs  or  /sdcard/Download/roms  (your ROM directory on device)")
         sync_layout.addWidget(self.rom_path_input, 1)
 
-        self.btn_sync_roms = QPushButton("Sync Folders")
+        self.btn_sync_roms = QPushButton(i18n.tr("Sync Folders"))
         self.btn_sync_roms.setToolTip(
-            "Scan the ROM directory for games and create matching\n"
-            "folders in the iiSU assets path so the asset tool can find them"
+            i18n.tr("Scan the ROM directory for games and create matching\n"
+            "folders in the iiSU assets path so the asset tool can find them")
         )
         self.btn_sync_roms.clicked.connect(self._sync_rom_folders)
         sync_layout.addWidget(self.btn_sync_roms)
@@ -605,8 +606,8 @@ class DeviceAssetDialog(QDialog):
         # Options row
         options_layout = QHBoxLayout()
 
-        self.delete_after_push = QCheckBox("Delete local assets after pushing to device")
-        self.delete_after_push.setToolTip("Remove the local output folder for each game after successfully pushing to device")
+        self.delete_after_push = QCheckBox(i18n.tr("Delete local assets after pushing to device"))
+        self.delete_after_push.setToolTip(i18n.tr("Remove the local output folder for each game after successfully pushing to device"))
         self.delete_after_push.setChecked(True)
         options_layout.addWidget(self.delete_after_push)
 
@@ -616,20 +617,20 @@ class DeviceAssetDialog(QDialog):
         # Action buttons
         action_layout = QHBoxLayout()
 
-        self.btn_replace_selected = QPushButton("Replace Selected on Device")
+        self.btn_replace_selected = QPushButton(i18n.tr("Replace Selected on Device"))
         self.btn_replace_selected.clicked.connect(self._replace_selected)
         self.btn_replace_selected.setEnabled(False)
         self.btn_replace_selected.setObjectName("btn_start")
         action_layout.addWidget(self.btn_replace_selected)
 
-        self.btn_push_all = QPushButton("Push All Local to Device")
+        self.btn_push_all = QPushButton(i18n.tr("Push All Local to Device"))
         self.btn_push_all.clicked.connect(self._push_all_local)
         self.btn_push_all.setObjectName("btn_preview")
         action_layout.addWidget(self.btn_push_all)
 
         action_layout.addStretch()
 
-        btn_close = QPushButton("Close")
+        btn_close = QPushButton(i18n.tr("Close"))
         btn_close.clicked.connect(self.accept)
         action_layout.addWidget(btn_close)
 
@@ -641,7 +642,7 @@ class DeviceAssetDialog(QDialog):
     def _check_adb(self):
         """Check if ADB is available."""
         if not self.adb_path:
-            self.status_label.setText("ADB not found. Please install Android SDK Platform Tools.")
+            self.status_label.setText(i18n.tr("ADB not found. Please install Android SDK Platform Tools."))
             self.btn_scan.setEnabled(False)
             self.btn_replace_selected.setEnabled(False)
             self.btn_push_all.setEnabled(False)
@@ -657,12 +658,12 @@ class DeviceAssetDialog(QDialog):
                 devices = [l.split('\t')[0] for l in lines if '\tdevice' in l]
 
                 if devices:
-                    self.status_label.setText(f"Found {len(devices)} connected device(s). Click 'Scan Device' to view assets.")
+                    self.status_label.setText(i18n.tr("Found {n} connected device(s). Click 'Scan Device' to view assets.", n=len(devices)))
                 else:
-                    self.status_label.setText("No Android devices connected. Enable USB debugging and connect device.")
+                    self.status_label.setText(i18n.tr("No Android devices connected. Enable USB debugging and connect device."))
                     self.btn_scan.setEnabled(False)
             except Exception as e:
-                self.status_label.setText(f"Error checking devices: {e}")
+                self.status_label.setText(f"{i18n.tr('Error')}: {e}")
                 self.btn_scan.setEnabled(False)
 
     def _scan_device(self):
@@ -719,14 +720,14 @@ class DeviceAssetDialog(QDialog):
             self.device_tree.addTopLevelItem(platform_item)
 
         self.device_tree.expandAll()
-        self.status_label.setText(f"Found {len(assets)} platforms, {total_games} games on device")
+        self.status_label.setText(i18n.tr("Found {n} platforms, {total} games on device", n=len(assets), total=total_games))
 
     def _on_scan_error(self, error: str):
         """Handle scan error."""
         self.btn_scan.setEnabled(True)
         self.progress_bar.setVisible(False)
-        self.status_label.setText(f"Scan error: {error}")
-        QMessageBox.critical(self, "Scan Error", f"Failed to scan device: {error}")
+        self.status_label.setText(f"{i18n.tr('Scan Error')}: {error}")
+        QMessageBox.critical(self, i18n.tr("Scan Error"), i18n.tr("Failed to scan device: {error}", error=error))
 
     def _sync_rom_folders(self):
         """Scan ROM directory on device and create matching asset folders."""
@@ -734,9 +735,9 @@ class DeviceAssetDialog(QDialog):
         if not rom_path:
             QMessageBox.warning(
                 self,
-                "No ROM Path",
-                "Please enter the path to your ROM directory on the device.\n\n"
-                "This is where your game ROMs are stored, e.g.:\n"
+                i18n.tr("No ROM Path"),
+                i18n.tr("Please enter the path to your ROM directory on the device.") + "\n\n"
+                f"{i18n.tr('This is where your game ROMs are stored, e.g.:')}\n"
                 "  /sdcard/ROMs\n"
                 "  /sdcard/Download/roms\n"
                 "  /storage/emulated/0/RetroArch/roms"
@@ -748,13 +749,13 @@ class DeviceAssetDialog(QDialog):
         # Confirm with user
         reply = QMessageBox.question(
             self,
-            "Sync Game Folders",
-            f"This will:\n\n"
-            f"1. Scan your ROM directory:\n   {rom_path}\n\n"
-            f"2. Create matching game folders in:\n   {assets_path}\n\n"
-            f"This ensures the asset tool can detect all your games.\n"
-            f"Existing folders will not be modified.\n\n"
-            f"Continue?",
+            i18n.tr("Sync Game Folders"),
+            f"{i18n.tr('This will:')}\n\n"
+            f"1. {i18n.tr('Scan your ROM directory:')}\n   {rom_path}\n\n"
+            f"2. {i18n.tr('Create matching game folders in:')}\n   {assets_path}\n\n"
+            f"{i18n.tr('This ensures the asset tool can detect all your games.')}\n"
+            f"{i18n.tr('Existing folders will not be modified.')}\n\n"
+            f"{i18n.tr('Continue?')}",
             QMessageBox.Yes | QMessageBox.No
         )
 
@@ -765,7 +766,7 @@ class DeviceAssetDialog(QDialog):
         self.btn_scan.setEnabled(False)
         self.progress_bar.setVisible(True)
         self.progress_bar.setRange(0, 0)  # Indeterminate
-        self.status_label.setText("Syncing game folders from ROM directory...")
+        self.status_label.setText(i18n.tr("Syncing game folders from ROM directory..."))
 
         self._sync_thread = RomFolderSyncThread(self.adb_path, rom_path, assets_path)
         self._sync_thread.progress.connect(self._on_sync_progress)
@@ -784,21 +785,21 @@ class DeviceAssetDialog(QDialog):
         self.progress_bar.setVisible(False)
 
         if created > 0:
-            self.status_label.setText(f"Sync complete: {created} new folders created, {already_existed} already existed.")
+            self.status_label.setText(i18n.tr("Sync complete: {created} new folders created, {existed} already existed.", created=created, existed=already_existed))
             QMessageBox.information(
                 self,
-                "Sync Complete",
-                f"Created {created} new game folders.\n"
-                f"{already_existed} game folders already existed.\n\n"
-                f"Click 'Scan iiSU Assets' to see the updated game list."
+                i18n.tr("Success"),
+                i18n.tr("Created {n} new folders.", n=created) + "\n"
+                f"{already_existed} {i18n.tr('game folders already existed.')}\\n\\n"
+                f"{i18n.tr("Click 'Scan iiSU Assets' to see the updated game list.")}"
             )
         else:
-            self.status_label.setText(f"Sync complete: all {already_existed} folders already exist.")
+            self.status_label.setText(i18n.tr("Sync complete: all {existed} folders already exist.", existed=already_existed))
             QMessageBox.information(
                 self,
-                "Sync Complete",
-                f"All {already_existed} game folders already exist.\n"
-                f"No new folders needed to be created."
+                i18n.tr("Success"),
+                i18n.tr("All {existed} game folders already exist.", existed=already_existed) + "\n"
+                f"{i18n.tr('No new folders needed to be created.')}"
             )
 
     def _on_sync_error(self, error: str):
@@ -806,8 +807,8 @@ class DeviceAssetDialog(QDialog):
         self.btn_sync_roms.setEnabled(True)
         self.btn_scan.setEnabled(True)
         self.progress_bar.setVisible(False)
-        self.status_label.setText(f"Sync error: {error}")
-        QMessageBox.critical(self, "Sync Error", f"Failed to sync ROM folders: {error}")
+        self.status_label.setText(f"{i18n.tr('Sync Error')}: {error}")
+        QMessageBox.critical(self, i18n.tr("Sync Error"), i18n.tr("Failed to sync ROM folders: {error}", error=error))
 
     def _load_local_assets(self):
         """Load local output assets."""
@@ -855,7 +856,7 @@ class DeviceAssetDialog(QDialog):
         """Browse for local output directory."""
         path = QFileDialog.getExistingDirectory(
             self,
-            "Select Output Directory",
+            i18n.tr("Select Output Directory"),
             self.output_dir,
             QFileDialog.ShowDirsOnly
         )
@@ -1104,29 +1105,29 @@ class DeviceAssetDialog(QDialog):
                     unmatched_games.append(game_name)
 
         if not selected_items:
-            msg = "No matching local assets found for selected device games.\n\n"
+            msg = i18n.tr("No matching local assets found for selected device games.") + "\n\n"
             if unmatched_games:
-                msg += f"Unmatched games ({len(unmatched_games)}):\n"
+                msg += f"{i18n.tr('Unmatched games ({n}):', n=len(unmatched_games))}\n"
                 msg += "\n".join(f"  - {g}" for g in unmatched_games[:10])
                 if len(unmatched_games) > 10:
-                    msg += f"\n  ... and {len(unmatched_games) - 10} more"
-            msg += "\n\nMake sure you have generated assets for the selected games."
-            QMessageBox.information(self, "No Matches", msg)
+                    msg += f"\n  ... {i18n.tr('and {n} more', n=len(unmatched_games) - 10)}"
+            msg += "\n\n" + i18n.tr("Make sure you have generated assets for the selected games.")
+            QMessageBox.information(self, i18n.tr("No Matches"), msg)
             return
 
         # Show confirmation with match details
-        msg = f"Replace {len(selected_items)} files on device?\n\n"
-        msg += f"Matched {len(matched_games)} games:\n"
+        msg = i18n.tr("Replace {n} files on device?", n=len(selected_items)) + "\n\n"
+        msg += f"{i18n.tr('Matched {n} games:', n=len(matched_games))}\n"
         for match in matched_games[:5]:
             msg += f"  - {match}\n"
         if len(matched_games) > 5:
-            msg += f"  ... and {len(matched_games) - 5} more\n"
+            msg += f"  ... {i18n.tr('and {n} more', n=len(matched_games) - 5)}\n"
         if unmatched_games:
-            msg += f"\n{len(unmatched_games)} games had no local match."
+            msg += f"\n{len(unmatched_games)} {i18n.tr('games had no local match.')}"
 
         reply = QMessageBox.question(
             self,
-            "Confirm Replace",
+            i18n.tr("Confirm Replace"),
             msg,
             QMessageBox.Yes | QMessageBox.No
         )
@@ -1139,29 +1140,29 @@ class DeviceAssetDialog(QDialog):
         items, matched_games, new_games, folders_to_create = self._get_all_local_items_with_matching()
 
         if not items:
-            msg = "No local assets found to push.\n\n"
-            msg += "Generate assets first using the Icon Generator tab."
-            QMessageBox.information(self, "No Assets", msg)
+            msg = i18n.tr("No local assets found to push.") + "\n\n"
+            msg += i18n.tr("Generate assets first using the Icon Generator tab.")
+            QMessageBox.information(self, i18n.tr("No Assets"), msg)
             return
 
         # Show confirmation with match details
-        msg = f"Push {len(items)} files to device?\n\n"
+        msg = i18n.tr("Push {n} files to device?", n=len(items)) + "\n\n"
         if matched_games:
-            msg += f"Matched {len(matched_games)} existing games:\n"
+            msg += f"{i18n.tr('Matched {n} existing games:', n=len(matched_games))}\n"
             for match in matched_games[:5]:
                 msg += f"  ✓ {match}\n"
             if len(matched_games) > 5:
-                msg += f"  ... and {len(matched_games) - 5} more\n"
+                msg += f"  ... {i18n.tr('and {n} more', n=len(matched_games) - 5)}\n"
         if new_games:
-            msg += f"\n{len(new_games)} new game folders will be created:\n"
+            msg += f"\n{len(new_games)} {i18n.tr('new game folders will be created:')}n"
             for g in new_games[:5]:
                 msg += f"  + {g}\n"
             if len(new_games) > 5:
-                msg += f"  ... and {len(new_games) - 5} more\n"
+                msg += f"  ... {i18n.tr('and {n} more', n=len(new_games) - 5)}\n"
 
         reply = QMessageBox.question(
             self,
-            "Confirm Push",
+            i18n.tr("Confirm Push"),
             msg,
             QMessageBox.Yes | QMessageBox.No
         )
@@ -1187,7 +1188,7 @@ class DeviceAssetDialog(QDialog):
     def _on_push_progress(self, current: int, total: int, filename: str):
         """Handle push progress update."""
         self.progress_bar.setValue(current)
-        self.status_label.setText(f"Pushing {current}/{total}: {filename}")
+        self.status_label.setText(i18n.tr("Pushing {current}/{total}: {name}", current=current, total=total, name=filename))
 
     def _on_push_finished(self, copied: int, errors: int, successful_folders: list):
         """Handle push completion."""
@@ -1201,7 +1202,7 @@ class DeviceAssetDialog(QDialog):
 
         # Delete local folders if checkbox is checked
         if self.delete_after_push.isChecked() and successful_folders:
-            self.status_label.setText(f"Pushed {copied} files. Deleting local folders...")
+            self.status_label.setText(i18n.tr("Pushed {n} files. Deleting local folders...", n=copied))
 
             for folder_path in successful_folders:
                 try:
@@ -1214,30 +1215,30 @@ class DeviceAssetDialog(QDialog):
                     delete_errors += 1
 
         # Build status message
-        status_parts = [f"Pushed {copied} files to device"]
+        status_parts = [i18n.tr("Pushed {n} files to device", n=copied)]
         if errors > 0:
-            status_parts.append(f"{errors} push errors")
+            status_parts.append(f"{errors} {i18n.tr('push errors')}")
         if deleted_count > 0:
-            status_parts.append(f"deleted {deleted_count} local folders")
+            status_parts.append(i18n.tr("deleted {n} local folders", n=deleted_count))
         if delete_errors > 0:
-            status_parts.append(f"{delete_errors} delete errors")
+            status_parts.append(f"{delete_errors} {i18n.tr('delete errors')}")
 
         self.status_label.setText(" | ".join(status_parts))
 
         if errors == 0 and delete_errors == 0:
-            msg = f"Successfully pushed {copied} files to device."
+            msg = i18n.tr("Successfully pushed {n} files to device.", n=copied)
             if deleted_count > 0:
-                msg += f"\n\nDeleted {deleted_count} local asset folders."
-            QMessageBox.information(self, "Success", msg)
+                msg += f"\n\n{i18n.tr('Deleted {n} local asset folders.', n=deleted_count)}"
+            QMessageBox.information(self, i18n.tr("Success"), msg)
         else:
-            msg = f"Pushed {copied} files to device."
+            msg = i18n.tr("Pushed {n} files to device.", n=copied)
             if errors > 0:
-                msg += f"\n{errors} files failed to push."
+                msg += f"\n{errors} {i18n.tr('files failed to push.')}"
             if deleted_count > 0:
-                msg += f"\n\nDeleted {deleted_count} local folders."
+                msg += f"\n\n{i18n.tr('Deleted {n} local folders.', n=deleted_count)}"
             if delete_errors > 0:
-                msg += f"\n{delete_errors} folders failed to delete."
-            QMessageBox.warning(self, "Complete with Errors", msg)
+                msg += f"\n{delete_errors} {i18n.tr('folders failed to delete.')}"
+            QMessageBox.warning(self, i18n.tr("Complete with Errors"), msg)
 
         # Refresh both views
         self._scan_device()
@@ -1250,5 +1251,5 @@ class DeviceAssetDialog(QDialog):
         self.btn_scan.setEnabled(True)
         self.progress_bar.setVisible(False)
 
-        self.status_label.setText(f"Push error: {error}")
-        QMessageBox.critical(self, "Push Error", f"Failed to push to device: {error}")
+        self.status_label.setText(f"{i18n.tr('Push Error')}: {error}")
+        QMessageBox.critical(self, i18n.tr("Push Error"), i18n.tr("Failed to push to device: {error}", error=error))

@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">iiSU 资源工具</string>
+
+    <!-- ==================== NAVIGATION ==================== -->
+    <string name="nav_iisu_browser">游戏库</string>
+    <string name="nav_existing_assets">我的资源</string>
+    <string name="nav_icon_generator">搜索</string>
+    <string name="nav_custom_image">自定义</string>
+    <string name="nav_settings">设置</string>
+    <string name="nav_icons">图标</string>
+    <string name="nav_community_db">工坊</string>
+    <string name="nav_music">音乐</string>
+
+    <!-- ==================== LIBRARY (iiSU BROWSER) ==================== -->
+    <string name="iisu_browser_title">游戏库</string>
+    <string name="iisu_browser_subtitle">浏览和管理您游戏的封面资源</string>
+    <string name="iisu_not_installed">未找到游戏库</string>
+    <string name="iisu_not_installed_desc">选择您的 ROM 文件夹开始使用，或安装 iiSU 启动器以自动检测。</string>
+    <string name="iisu_platforms">平台</string>
+    <string name="select_rom_folder">选择 ROM 文件夹</string>
+    <string name="rom_folder_selected">ROM 文件夹：%1$s</string>
+    <string name="rom_folder_invalid">此文件夹中未找到有效的平台</string>
+    <string name="iisu_roms">游戏</string>
+    <string name="iisu_missing_icons">缺失封面</string>
+    <string name="iisu_scrape_all">获取全部缺失</string>
+    <string name="iisu_save_to_iisu">保存到游戏库</string>
+    <string name="iisu_refresh_tooltip">刷新游戏库</string>
+
+    <!-- ==================== MY ASSETS (EXISTING ASSETS) ==================== -->
+    <string name="existing_assets_title">我的资源</string>
+    <string name="existing_assets_subtitle">查看和管理已生成的封面资源</string>
+    <string name="existing_assets_hint">点击选择，长按显示选项</string>
+    <string name="existing_assets_empty">未找到封面资源。\n\n使用游戏库或搜索标签页为您的游戏生成封面。</string>
+    <string name="existing_assets_scanning">正在扫描封面资源…</string>
+    <string name="existing_assets_ready">就绪</string>
+    <string name="existing_assets_no_icons">未找到封面资源</string>
+    <string name="existing_assets_count">%1$d 个项目</string>
+    <string name="existing_assets_selected">已选择 %1$d 个</string>
+
+    <!-- ==================== SEARCH (ICON GENERATOR) ==================== -->
+    <string name="icon_generator_title">搜索</string>
+    <string name="icon_generator_subtitle">查找任意游戏的封面资源</string>
+    <string name="icon_search_hint">输入游戏名称…</string>
+    <string name="icon_platform_label">平台</string>
+    <string name="icon_artwork_type_label">封面类型</string>
+    <string name="icon_generate_button">搜索</string>
+    <string name="icon_save_button">保存</string>
+    <string name="icon_results_count">%1$d 个结果</string>
+    <string name="icon_no_results">未找到此搜索的封面资源</string>
+
+    <!-- Artwork types (for spinner) -->
+    <string name="artwork_type_icon">图标（方形）</string>
+    <string name="artwork_type_boxart">封面</string>
+    <string name="artwork_type_hero">横幅</string>
+    <string name="artwork_type_logo">标志</string>
+    <string name="artwork_type_screenshot">截图</string>
+
+    <!-- ==================== CUSTOM IMAGE ==================== -->
+    <string name="custom_image_title">自定义图像</string>
+    <string name="custom_image_subtitle">为您自己的图像应用边框</string>
+    <string name="custom_select_image">选择图像</string>
+    <string name="custom_select_border">选择边框</string>
+    <string name="custom_apply_border">预览</string>
+    <string name="custom_save_button">保存</string>
+    <string name="custom_step_1">1. 选择图像</string>
+    <string name="custom_step_1_desc">从设备中选择任意图像</string>
+    <string name="custom_step_2">2. 选择边框</string>
+    <string name="custom_step_2_desc">选择一个平台风格的边框</string>
+    <string name="custom_step_3">3. 保存</string>
+    <string name="custom_step_3_desc">预览并保存您的封面</string>
+
+    <!-- ==================== SETTINGS ==================== -->
+    <string name="settings_title">设置</string>
+
+    <!-- Appearance -->
+    <string name="settings_section_appearance">外观</string>
+    <string name="settings_theme">主题</string>
+    <string name="settings_theme_dark">暗色</string>
+    <string name="settings_theme_light">亮色</string>
+    <string name="settings_theme_system">跟随系统</string>
+    <string name="settings_theme_desc">选择您喜欢的配色方案</string>
+
+    <!-- API Keys -->
+    <string name="settings_section_api">封面来源</string>
+    <string name="settings_api_desc">配置封面数据库的 API 密钥</string>
+    <string name="settings_sgdb_key">SteamGridDB API 密钥</string>
+    <string name="settings_sgdb_hint">输入您的 SteamGridDB API 密钥</string>
+    <string name="settings_sgdb_help">在 steamgriddb.com 获取免费密钥</string>
+    <string name="settings_igdb_title">IGDB (Twitch)</string>
+    <string name="settings_igdb_client">客户端 ID</string>
+    <string name="settings_igdb_secret">客户端密钥</string>
+    <string name="settings_igdb_help">在 api.igdb.com 获取凭据</string>
+    <string name="settings_save_keys">保存密钥</string>
+
+    <!-- Generation -->
+    <string name="settings_section_generation">生成选项</string>
+    <string name="settings_parallel_downloads">并行下载</string>
+    <string name="settings_parallel_desc">数值越高速度越快，但占用更多带宽</string>
+    <string name="settings_interactive">保存前询问</string>
+    <string name="settings_interactive_desc">批量生成时为每个游戏显示封面选择器</string>
+
+    <!-- Extended Assets (DS Mode) -->
+    <string name="settings_section_extended">扩展资源</string>
+    <string name="settings_extended_desc">iiSU 启动器的额外封面类型</string>
+    <string name="settings_ds_mode">启用扩展资源</string>
+    <string name="settings_ds_mode_desc">下载横幅、标志和截图以及图标</string>
+    <string name="settings_heroes">横幅图像</string>
+    <string name="settings_heroes_desc">宽横幅图像（1920×620）</string>
+    <string name="settings_heroes_count">每游戏横幅数</string>
+    <string name="settings_heroes_crop">裁剪为 16:9</string>
+    <string name="settings_logos">游戏标志</string>
+    <string name="settings_logos_desc">透明标题图像</string>
+    <string name="settings_screenshots">截图</string>
+    <string name="settings_screenshots_desc">游戏内截图</string>
+    <string name="settings_screenshots_count">每游戏截图数</string>
+
+    <!-- Source Priority -->
+    <string name="settings_section_sources">来源优先级</string>
+    <string name="settings_sources_desc">拖动以调整顺序。封面按从上到下的顺序搜索。</string>
+    <string name="settings_enable_all">全部启用</string>
+    <string name="settings_disable_all">全部禁用</string>
+
+    <!-- Output -->
+    <string name="settings_section_output">输出</string>
+    <string name="settings_format">图像格式</string>
+    <string name="settings_format_png">PNG（推荐）</string>
+    <string name="settings_format_jpeg">JPEG（文件更小）</string>
+    <string name="settings_jpeg_quality">JPEG 质量</string>
+    <string name="settings_custom_border">自定义边框</string>
+    <string name="settings_custom_border_desc">使用您自己的图像覆盖平台边框</string>
+    <string name="settings_select_border">选择图像</string>
+    <string name="settings_clear_border">清除</string>
+    <string name="settings_border_hint">建议使用 1024×1024 透明 PNG</string>
+
+    <!-- Advanced -->
+    <string name="settings_section_advanced">高级</string>
+    <string name="settings_asset_dir">资源目录</string>
+    <string name="settings_asset_dir_desc">生成的封面保存位置</string>
+    <string name="settings_asset_dir_default">默认（iiSU 媒体文件夹）</string>
+    <string name="settings_select_dir">选择文件夹</string>
+    <string name="settings_reset_dir">重置</string>
+    <string name="settings_fallback">后备行为</string>
+    <string name="settings_fallback_platform">未找到封面时使用平台图标</string>
+    <string name="settings_skip_scraping">跳过搜索（始终使用平台图标）</string>
+
+    <!-- Background Music -->
+    <string name="settings_section_music">背景音乐</string>
+    <string name="settings_music_enabled">启用背景音乐</string>
+    <string name="settings_music_enabled_desc">浏览时播放 iiSU 原声带</string>
+    <string name="settings_music_volume">音量</string>
+    <string name="settings_music_credit">音乐由 Thaddeus Silva 创作</string>
+
+    <!-- About -->
+    <string name="settings_section_about">关于</string>
+    <string name="settings_about">关于</string>
+    <string name="settings_version">版本 %1$s</string>
+    <string name="settings_about_desc">为 iiSU 打造完美的视觉效果。</string>
+    <string name="settings_music_credits">iiSU 原声带由 Thaddeus Silva 创作</string>
+    <string name="settings_logo_credits">Logo 由 Caddypillar 设计</string>
+
+    <!-- ==================== COMMON ==================== -->
+    <string name="loading">正在加载…</string>
+    <string name="searching">正在搜索…</string>
+    <string name="saving">正在保存…</string>
+    <string name="processing">处理中…</string>
+    <string name="error_network">网络错误。请检查您的网络连接。</string>
+    <string name="error_no_results">未找到结果</string>
+    <string name="error_generic">出错了</string>
+    <string name="success_saved">已保存！</string>
+    <string name="cancel">取消</string>
+    <string name="ok">确定</string>
+    <string name="save">保存</string>
+    <string name="refresh">刷新</string>
+    <string name="select_all">全选</string>
+    <string name="select_none">清除选择</string>
+    <string name="delete">删除</string>
+    <string name="rescrape">重新下载</string>
+
+    <!-- ==================== WORKSHOP ==================== -->
+    <string name="community_db_title">工坊</string>
+    <string name="community_db_subtitle">浏览和下载社区制作的图标、封面和标志</string>
+    <string name="community_db_search_hint">搜索游戏…</string>
+    <string name="community_db_connecting">正在连接工坊…</string>
+    <string name="community_db_no_games">未找到游戏</string>
+
+    <!-- ==================== MUSIC (SOUNDBYTES) ==================== -->
+    <string name="music_title">音乐</string>
+    <string name="music_subtitle">下载游戏音乐作为 iiSU 悬停音效</string>
+    <string name="music_search_hint">输入游戏名称…</string>
+    <string name="music_gamerip_only">仅游戏提取</string>
+    <string name="music_gamerip">游戏提取</string>
+    <string name="music_ready">搜索游戏以查找原声带</string>
+    <string name="music_no_results">未找到专辑</string>
+    <string name="music_empty_title">搜索原声带</string>
+    <string name="music_empty_subtitle">在上方输入游戏名称浏览\nKHInsider 上的可用音乐</string>
+    <string name="music_select_game">选择游戏</string>
+    <string name="music_select_game_desc">选择将此音轨保存到哪个游戏</string>
+
+    <!-- ==================== ICONS (COMBINED TAB) ==================== -->
+    <string name="icons_tab_search">搜索</string>
+    <string name="icons_tab_custom">自定义</string>
+
+    <!-- Accessibility -->
+    <string name="cd_refresh">刷新</string>
+    <string name="cd_search">搜索</string>
+    <string name="cd_close">关闭</string>
+    <string name="cd_menu">菜单</string>
+    <string name="cd_preview">封面预览</string>
+    <string name="cd_platform_icon">平台图标</string>
+
+    <!-- Replace Launcher Assets -->
+    <string name="settings_replace_assets">替换启动器资源</string>
+    <string name="settings_replace_assets_desc">使用此应用的新版本更新 iiSU 启动器的平台封面和边框</string>
+    <string name="settings_replace_covers">替换封面</string>
+    <string name="settings_replace_covers_desc">更新平台封面图像</string>
+    <string name="settings_replace_borders">替换边框</string>
+    <string name="settings_replace_borders_desc">更新平台边框框架</string>
+    <string name="settings_replace_all">替换所有资源</string>
+    <string name="settings_launcher_not_found">未找到 iiSU 启动器资源文件夹</string>
+    <string name="settings_assets_replaced">成功替换 %1$d 个资源</string>
+    <string name="settings_no_assets_replaced">未替换任何资源</string>
+
+    <!-- Settings Toast Messages -->
+    <string name="settings_keys_saved">API 密钥已保存</string>
+    <string name="settings_border_set">自定义边框已设置</string>
+    <string name="settings_no_border">未选择边框</string>
+    <string name="settings_border_saved">边框已保存</string>
+    <string name="settings_border_error">保存边框出错</string>
+    <string name="settings_dir_reset">目录已重置为默认</string>
+    <string name="settings_dir_set">目录已设置</string>
+    <string name="settings_select_type">请至少选择一种资源类型</string>
+    <string name="settings_replacing">正在替换…</string>
+    <string name="settings_replaced_count">已替换 %1$d 个封面和 %2$d 个边框</string>
+    <string name="settings_replace_error">替换资源出错</string>
+    <string name="settings_iisu_not_found">未找到 iiSU 启动器目录</string>
+
+    <!-- ROM Source Path -->
+    <string name="settings_rom_source">ROM 源目录</string>
+    <string name="settings_rom_source_desc">设置您的 ROM 目录以在 iiSU 资源路径中创建缺失的游戏文件夹。当游戏未显示在游戏库中时使用此功能。</string>
+    <string name="settings_rom_source_hint">例如 /sdcard/ROMs 或 /sdcard/Download/roms</string>
+    <string name="settings_rom_source_saved">ROM 源路径已保存</string>
+    <string name="settings_rom_source_cleared">ROM 源路径已清除</string>
+    <string name="settings_rom_sync_now">同步游戏文件夹</string>
+    <string name="settings_rom_sync_running">正在同步…</string>
+    <string name="settings_rom_sync_done">已创建 %1$d 个新游戏文件夹（%2$d 个已存在）</string>
+    <string name="settings_rom_sync_no_path">请先输入 ROM 源路径</string>
+    <string name="settings_rom_sync_not_found">未找到 ROM 源目录：%1$s</string>
+
+    <!-- ==================== ONBOARDING ==================== -->
+    <string name="onboarding_skip">跳过</string>
+    <string name="onboarding_back">上一步</string>
+    <string name="onboarding_next">下一步</string>
+    <string name="onboarding_get_started">开始使用</string>
+    <string name="onboarding_welcome_title">欢迎来到 v2.0</string>
+    <string name="onboarding_welcome_subtitle">重大更新：全新工坊、可分享的游戏链接，以及完整的横幅和标志支持。</string>
+    <string name="onboarding_workshop_title">工坊</string>
+    <string name="onboarding_workshop_subtitle">社区数据库现在成为工坊。浏览、下载和应用社区库中的图标、横幅和标志。</string>
+    <string name="onboarding_editor_title">游戏链接</string>
+    <string name="onboarding_editor_subtitle">工坊中的每个游戏现在都有自己的可分享 URL。发送链接即可直接跳转到任意游戏的资源。</string>
+    <string name="onboarding_ready_title">准备就绪</string>
+    <string name="onboarding_ready_subtitle">您的游戏库和设置都保持原样。开始创作吧！</string>
+    <string name="onboarding_icon_desc">功能图标</string>
+
+    <!-- Android Apps Path -->
+    <string name="settings_android_apps">安卓应用路径</string>
+    <string name="settings_android_apps_desc">安卓应用资源路径，用于编辑现有应用图标</string>
+    <string name="settings_android_apps_default">默认 iiSU 启动器路径</string>
+    <string name="settings_android_apps_path_set">安卓应用路径已更新</string>
+    <string name="settings_android_apps_path_reset">安卓应用路径已重置为默认</string>
+
+</resources>

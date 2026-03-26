@@ -15,6 +15,7 @@ from PySide6.QtGui import QPixmap
 from io import BytesIO
 from PIL import Image, ImageOps
 from iisu_image_utils import safe_load_image
+import i18n
 
 
 class ArtworkOption(QFrame):
@@ -142,11 +143,11 @@ class ArtworkOption(QFrame):
             show_crop = not self.is_square
 
         if show_crop:
-            self.crop_btn = QPushButton("Crop")
+            self.crop_btn = QPushButton(i18n.tr("Crop"))
             if asset_type == "hero":
-                self.crop_btn.setToolTip("Crop to 1920x620 hero dimensions")
+                self.crop_btn.setToolTip(i18n.tr("Crop to 1920x620 hero dimensions"))
             else:
-                self.crop_btn.setToolTip("Crop this image to a square")
+                self.crop_btn.setToolTip(i18n.tr("Crop this image to a square"))
             self.crop_btn.setObjectName("btn_warning")
             self.crop_btn.clicked.connect(lambda: self.crop_requested.emit(self.index))
             button_row.addWidget(self.crop_btn)
@@ -241,8 +242,8 @@ class ArtworkPickerDialog(QDialog):
         self.on_filter_changed = on_filter_changed
         self.is_square_only = True  # Default to square only
 
-        type_name = self.ASSET_TYPE_NAMES.get(asset_type, "Artwork")
-        self.setWindowTitle(f"Select {type_name} - {title}")
+        type_name = i18n.tr(self.ASSET_TYPE_NAMES.get(asset_type, "Artwork"))
+        self.setWindowTitle(i18n.tr("Select {type} - {title}", type=type_name, title=title))
         self.setMinimumSize(900, 700)
 
         self._setup_ui()
@@ -257,10 +258,10 @@ class ArtworkPickerDialog(QDialog):
         layout.addWidget(header)
 
         if len(self.artwork_options) == 1:
-            info = QLabel(f"Found artwork from: <b>{self.artwork_options[0]['source']}</b>")
+            info = QLabel(i18n.tr("Found artwork from:") + f" <b>{self.artwork_options[0]['source']}</b>")
             info.setObjectName("label_accent")
         else:
-            info = QLabel(f"Found {len(self.artwork_options)} artwork option(s). Select one:")
+            info = QLabel(i18n.tr("Found {n} artwork option(s). Select one:", n=len(self.artwork_options)))
             info.setObjectName("label_muted")
         layout.addWidget(info)
 
@@ -268,19 +269,19 @@ class ArtworkPickerDialog(QDialog):
         if self.show_filter:
             filter_toggle_layout = QHBoxLayout()
 
-            filter_label = QLabel("Filter:")
+            filter_label = QLabel(i18n.tr("Filter:"))
             filter_label.setObjectName("label_muted")
             filter_toggle_layout.addWidget(filter_label)
 
             # Create toggle buttons for Square Only / All Results
-            self.btn_square_only = QPushButton("Square Only")
+            self.btn_square_only = QPushButton(i18n.tr("Square Only"))
             self.btn_square_only.setCheckable(True)
             self.btn_square_only.setChecked(True)
             self.btn_square_only.setObjectName("filter_chip")
             self.btn_square_only.clicked.connect(self._on_square_only_clicked)
             filter_toggle_layout.addWidget(self.btn_square_only)
 
-            self.btn_all_results = QPushButton("All Results")
+            self.btn_all_results = QPushButton(i18n.tr("All Results"))
             self.btn_all_results.setCheckable(True)
             self.btn_all_results.setChecked(False)
             self.btn_all_results.setObjectName("filter_chip")
@@ -290,7 +291,7 @@ class ArtworkPickerDialog(QDialog):
             # Info button
             info_btn = QPushButton("?")
             info_btn.setFixedSize(24, 24)
-            info_btn.setToolTip("Square icons work best with iiSU borders.\nNon-square images will need to be cropped.")
+            info_btn.setToolTip(i18n.tr("Square icons work best with iiSU borders.\nNon-square images will need to be cropped."))
             info_btn.setObjectName("filter_chip")
             filter_toggle_layout.addWidget(info_btn)
 
@@ -300,10 +301,10 @@ class ArtworkPickerDialog(QDialog):
         # Source filter (only show if multiple options)
         if len(self.artwork_options) > 1:
             filter_layout = QHBoxLayout()
-            filter_layout.addWidget(QLabel("Filter by source:"))
+            filter_layout.addWidget(QLabel(i18n.tr("Filter by source:")))
 
             self.source_filter = QComboBox()
-            self.source_filter.addItem("All Sources")
+            self.source_filter.addItem(i18n.tr("All Sources"))
 
             # Get unique sources
             sources = sorted(set(opt['source'] for opt in self.artwork_options))
@@ -364,23 +365,23 @@ class ArtworkPickerDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        btn_skip = QPushButton("Skip This Title")
-        btn_skip.setToolTip("Skip this title and continue to next")
+        btn_skip = QPushButton(i18n.tr("Skip This Title"))
+        btn_skip.setToolTip(i18n.tr("Skip this title and continue to next"))
         btn_skip.clicked.connect(self.reject)
         button_layout.addWidget(btn_skip)
 
         if len(self.artwork_options) == 1:
-            btn_select = QPushButton("Accept & Continue")
-            btn_select.setToolTip("Accept this artwork and continue to next title")
+            btn_select = QPushButton(i18n.tr("Accept & Continue"))
+            btn_select.setToolTip(i18n.tr("Accept this artwork and continue to next title"))
         else:
-            btn_select = QPushButton("Use Selected Artwork")
-            btn_select.setToolTip("Use the selected artwork option")
+            btn_select = QPushButton(i18n.tr("Use Selected Artwork"))
+            btn_select.setToolTip(i18n.tr("Use the selected artwork option"))
         btn_select.setDefault(True)
         btn_select.clicked.connect(self.accept)
         button_layout.addWidget(btn_select)
 
-        btn_cancel = QPushButton("Cancel All")
-        btn_cancel.setToolTip("Stop interactive mode completely")
+        btn_cancel = QPushButton(i18n.tr("Cancel All"))
+        btn_cancel.setToolTip(i18n.tr("Cancel all interactive mode completely"))
         btn_cancel.clicked.connect(self._cancel_all)
         button_layout.addWidget(btn_cancel)
 
@@ -463,16 +464,16 @@ class ArtworkPickerDialog(QDialog):
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self,
-                "Crop Error",
-                f"Could not load crop dialog module:\n{e}"
+                i18n.tr("Crop Error"),
+                i18n.tr("Could not load crop dialog module") + f":\n{e}"
             )
         except Exception as e:
             import traceback
             from PySide6.QtWidgets import QMessageBox
             QMessageBox.warning(
                 self,
-                "Crop Error",
-                f"Error during crop operation:\n{e}\n\n{traceback.format_exc()}"
+                i18n.tr("Crop Error"),
+                i18n.tr("Error during crop operation") + f":\n{e}\n\n{traceback.format_exc()}"
             )
 
     def accept(self):
@@ -497,47 +498,47 @@ class ArtworkPickerDialog(QDialog):
         img_h = widget.image_height
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("Hero Crop Position")
+        dialog.setWindowTitle(i18n.tr("Hero Crop Position"))
         dialog.setMinimumWidth(360)
         layout = QVBoxLayout(dialog)
         layout.setSpacing(12)
 
-        header = QLabel(f"<b>Selected image:</b> {img_w}×{img_h}")
+        header = QLabel(f"<b>{i18n.tr('Selected image:')}</b> {img_w}×{img_h}")
         header.setObjectName("label_accent")
         layout.addWidget(header)
 
-        info = QLabel("Choose crop position (crops to 1920×1080):")
+        info = QLabel(i18n.tr("Choose crop position (crops to 1920×1080):"))
         info.setObjectName("label_muted")
         layout.addWidget(info)
 
         # Option buttons
-        btn_original = QPushButton(f"Use Original ({img_w}×{img_h})")
-        btn_original.setToolTip("Keep the image exactly as-is, no cropping")
+        btn_original = QPushButton(i18n.tr("Use Original ({width}×{height})", width=img_w, height=img_h))
+        btn_original.setToolTip(i18n.tr("Keep the image exactly as-is, no cropping"))
         btn_original.clicked.connect(lambda: self._apply_hero_crop_option(dialog, widget, index, None))
         layout.addWidget(btn_original)
 
-        btn_left = QPushButton("Crop Left")
-        btn_left.setToolTip("Crop to 1920×1080 from the left side of the image")
+        btn_left = QPushButton(i18n.tr("Crop Left"))
+        btn_left.setToolTip(i18n.tr("Crop to 1920×1080 from the left side of the image"))
         btn_left.clicked.connect(lambda: self._apply_hero_crop_option(dialog, widget, index, (1920, 1080), 0.0))
         layout.addWidget(btn_left)
 
-        btn_center = QPushButton("Crop Center")
-        btn_center.setToolTip("Crop to 1920×1080 from the center of the image")
+        btn_center = QPushButton(i18n.tr("Crop Center"))
+        btn_center.setToolTip(i18n.tr("Crop to 1920×1080 from the center of the image"))
         btn_center.clicked.connect(lambda: self._apply_hero_crop_option(dialog, widget, index, (1920, 1080), 0.5))
         layout.addWidget(btn_center)
 
-        btn_right = QPushButton("Crop Right")
-        btn_right.setToolTip("Crop to 1920×1080 from the right side of the image")
+        btn_right = QPushButton(i18n.tr("Crop Right"))
+        btn_right.setToolTip(i18n.tr("Crop to 1920×1080 from the right side of the image"))
         btn_right.clicked.connect(lambda: self._apply_hero_crop_option(dialog, widget, index, (1920, 1080), 1.0))
         layout.addWidget(btn_right)
 
-        btn_custom = QPushButton("Custom Crop...")
-        btn_custom.setToolTip("Open the interactive crop tool for manual adjustment")
+        btn_custom = QPushButton(i18n.tr("Custom Crop..."))
+        btn_custom.setToolTip(i18n.tr("Open the interactive crop tool for manual adjustment"))
         btn_custom.clicked.connect(lambda: self._apply_hero_custom_crop(dialog, widget, index))
         layout.addWidget(btn_custom)
 
         # Cancel — go back to picker
-        btn_back = QPushButton("Go Back")
+        btn_back = QPushButton(i18n.tr("Go Back"))
         btn_back.setObjectName("btn_warning")
         btn_back.clicked.connect(dialog.reject)
         layout.addWidget(btn_back)
@@ -601,8 +602,8 @@ class ArtworkPickerDialog(QDialog):
         except Exception as e:
             QMessageBox.warning(
                 self,
-                "Crop Error",
-                f"Failed to crop image:\n{e}"
+                i18n.tr("Crop Error"),
+                i18n.tr("Failed to crop image") + f":\n{e}"
             )
 
     def _apply_hero_custom_crop(self, options_dialog, widget, index: int):
@@ -626,9 +627,9 @@ class ArtworkPickerDialog(QDialog):
             # If user cancelled the crop dialog, stay in options dialog
 
         except ImportError as e:
-            QMessageBox.warning(self, "Crop Error", f"Could not load crop dialog:\n{e}")
+            QMessageBox.warning(self, i18n.tr("Crop Error"), i18n.tr("Could not load crop dialog") + f":\n{e}")
         except Exception as e:
-            QMessageBox.warning(self, "Crop Error", f"Error during crop:\n{e}")
+            QMessageBox.warning(self, i18n.tr("Crop Error"), i18n.tr("Error during crop") + f":\n{e}")
 
     def get_selected_index(self) -> Optional[int]:
         """

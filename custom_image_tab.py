@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 from run_backend import compose_with_border, center_crop_to_square, load_yaml, corner_mask_from_border
 from app_paths import get_config_path, get_borders_dir, get_config
 from iisu_image_utils import safe_load_image
+import i18n
 
 
 class TransformHandlesOverlay(QWidget):
@@ -834,17 +835,17 @@ class CustomImageTab(QWidget):
         image_card_layout.setSpacing(6)
 
         # Upload Image button (prominent)
-        self.bg_upload_btn = QPushButton("Upload Image")
+        self.bg_upload_btn = QPushButton(i18n.tr("Upload Image"))
         self.bg_upload_btn.setMinimumHeight(36)
         self.bg_upload_btn.clicked.connect(self._upload_background)
         self.bg_upload_btn.setObjectName("btn_primary")
         image_card_layout.addWidget(self.bg_upload_btn)
 
-        self.bg_info = QLabel("No image loaded")
+        self.bg_info = QLabel(i18n.tr("No image loaded"))
         self.bg_info.setObjectName("label_muted")
         image_card_layout.addWidget(self.bg_info)
 
-        self.bg_clear_btn = QPushButton("Clear Image")
+        self.bg_clear_btn = QPushButton(i18n.tr("Clear Image"))
         self.bg_clear_btn.setMinimumHeight(24)
         self.bg_clear_btn.clicked.connect(self._clear_background)
         self.bg_clear_btn.setEnabled(False)
@@ -860,13 +861,13 @@ class CustomImageTab(QWidget):
         image_card_layout.addWidget(sep1)
 
         # Logo section (optional overlay)
-        self.logo_upload_btn = QPushButton("Add Logo (Optional)")
+        self.logo_upload_btn = QPushButton(i18n.tr("Add Logo (Optional)"))
         self.logo_upload_btn.setMinimumHeight(30)
         self.logo_upload_btn.clicked.connect(self._upload_logo)
         self.logo_upload_btn.setObjectName("btn_secondary")
         image_card_layout.addWidget(self.logo_upload_btn)
 
-        self.logo_info = QLabel("Transparent PNG overlay")
+        self.logo_info = QLabel(i18n.tr("Transparent PNG overlay"))
         self.logo_info.setObjectName("label_muted")
         image_card_layout.addWidget(self.logo_info)
 
@@ -878,7 +879,7 @@ class CustomImageTab(QWidget):
 
         opacity_row = QHBoxLayout()
         opacity_row.setSpacing(6)
-        opacity_lbl = QLabel("Opacity:")
+        opacity_lbl = QLabel(i18n.tr("Opacity:"))
         opacity_lbl.setObjectName("label_info")
         opacity_row.addWidget(opacity_lbl)
         self.logo_opacity_slider = QSlider(Qt.Horizontal)
@@ -893,7 +894,7 @@ class CustomImageTab(QWidget):
         opacity_row.addWidget(self.logo_opacity_label)
         logo_ctrl_layout.addLayout(opacity_row)
 
-        self.logo_clear_btn = QPushButton("Clear Logo")
+        self.logo_clear_btn = QPushButton(i18n.tr("Clear Logo"))
         self.logo_clear_btn.setMinimumHeight(24)
         self.logo_clear_btn.clicked.connect(self._clear_logo)
         self.logo_clear_btn.setEnabled(False)
@@ -913,12 +914,12 @@ class CustomImageTab(QWidget):
         border_layout.setSpacing(6)
 
         border_header = QHBoxLayout()
-        border_title = QLabel("Platform Border")
+        border_title = QLabel(i18n.tr("Platform Border"))
         border_title.setObjectName("label_card_title")
         border_header.addWidget(border_title)
         border_header.addStretch()
 
-        custom_border_btn = QPushButton("+ Custom")
+        custom_border_btn = QPushButton(i18n.tr("+ Custom"))
         custom_border_btn.setMinimumHeight(22)
         custom_border_btn.clicked.connect(self._import_custom_border)
         custom_border_btn.setObjectName("btn_small")
@@ -927,7 +928,7 @@ class CustomImageTab(QWidget):
 
         self.platform_combo = QComboBox()
         self.platform_combo.setMinimumHeight(32)
-        self.platform_combo.addItem("Select platform...", None)
+        self.platform_combo.addItem(i18n.tr("Select platform..."), None)
 
         for platform_key, platform_data in sorted(self.platforms_config.items()):
             border_file = platform_data.get("border_file")
@@ -938,7 +939,7 @@ class CustomImageTab(QWidget):
         self.platform_combo.currentIndexChanged.connect(self._on_platform_changed)
         border_layout.addWidget(self.platform_combo)
 
-        self.border_info = QLabel("Select a platform to apply border")
+        self.border_info = QLabel(i18n.tr("Select a platform to apply border"))
         self.border_info.setObjectName("label_muted")
         border_layout.addWidget(self.border_info)
 
@@ -957,7 +958,7 @@ class CustomImageTab(QWidget):
 
         scale_row = QHBoxLayout()
         scale_row.setSpacing(4)
-        scale_lbl = QLabel("Scale:")
+        scale_lbl = QLabel(i18n.tr("Scale:"))
         scale_lbl.setObjectName("label_info")
         scale_row.addWidget(scale_lbl)
         self.scale_spinbox = QDoubleSpinBox()
@@ -987,20 +988,20 @@ class CustomImageTab(QWidget):
         options_row = QHBoxLayout()
         options_row.setSpacing(8)
 
-        self.lock_aspect_cb = QCheckBox("Lock Ratio")
+        self.lock_aspect_cb = QCheckBox(i18n.tr("Lock Ratio"))
         self.lock_aspect_cb.setChecked(True)
         self.lock_aspect_cb.setObjectName("cb_small")
         self.lock_aspect_cb.stateChanged.connect(self._on_lock_aspect_changed)
         options_row.addWidget(self.lock_aspect_cb)
 
-        self.reset_transform_btn = QPushButton("Reset")
+        self.reset_transform_btn = QPushButton(i18n.tr("Reset"))
         self.reset_transform_btn.setMinimumHeight(24)
         self.reset_transform_btn.clicked.connect(self._reset_current_layer)
         self.reset_transform_btn.setObjectName("btn_small")
         options_row.addWidget(self.reset_transform_btn)
 
         # Active layer indicator
-        self.active_layer_label = QLabel("BG")
+        self.active_layer_label = QLabel(i18n.tr("BG"))
         self.active_layer_label.setObjectName("active_layer_indicator")
         self.active_layer_label.setAlignment(Qt.AlignCenter)
         self.active_layer_label.setFixedHeight(22)
@@ -1017,14 +1018,14 @@ class CustomImageTab(QWidget):
         toolbar_layout.addWidget(sep2)
 
         # Export
-        self.export_btn = QPushButton("Export 1024x1024")
+        self.export_btn = QPushButton(i18n.tr("Export 1024x1024"))
         self.export_btn.setMinimumHeight(40)
         self.export_btn.clicked.connect(self._export_image)
         self.export_btn.setEnabled(False)
         self.export_btn.setObjectName("btn_export")
         toolbar_layout.addWidget(self.export_btn)
 
-        self.export_info = QLabel("Upload image and select platform")
+        self.export_info = QLabel(i18n.tr("Upload image and select platform"))
         self.export_info.setObjectName("label_muted")
         self.export_info.setAlignment(Qt.AlignCenter)
         toolbar_layout.addWidget(self.export_info)
@@ -1043,12 +1044,12 @@ class CustomImageTab(QWidget):
         right_layout.setSpacing(8)
 
         preview_header = QHBoxLayout()
-        preview_label = QLabel("Preview")
+        preview_label = QLabel(i18n.tr("Preview"))
         preview_label.setObjectName("label_card_title")
         preview_header.addWidget(preview_label)
         preview_header.addStretch()
 
-        preview_help = QLabel("Drag to move · Scroll to zoom · Corners to resize")
+        preview_help = QLabel(i18n.tr("Drag to move · Scroll to zoom · Corners to resize"))
         preview_help.setObjectName("label_muted")
         preview_header.addWidget(preview_help)
         right_layout.addLayout(preview_header)
@@ -1081,9 +1082,9 @@ class CustomImageTab(QWidget):
         """Open file dialog to upload background layer (game art)."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Upload Background (Game Art)",
+            i18n.tr("Upload Background (Game Art)"),
             "",
-            "Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)"
+            i18n.tr("Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)")
         )
 
         if not file_path:
@@ -1106,8 +1107,8 @@ class CustomImageTab(QWidget):
             # Update info
             size_mb = Path(file_path).stat().st_size / (1024 * 1024)
             self.bg_info.setText(
-                f"Loaded: {Path(file_path).name}\n"
-                f"Original: {img_w}x{img_h} ({size_mb:.2f} MB)"
+                i18n.tr("Loaded: {name}\nOriginal: {size} ({mb:.2f} MB)", 
+                       name=Path(file_path).name, size=f"{img_w}x{img_h}", mb=size_mb)
             )
             self.bg_clear_btn.setEnabled(True)
             self.bg_clear_btn.setVisible(True)
@@ -1132,15 +1133,15 @@ class CustomImageTab(QWidget):
             self._check_export_ready()
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load background:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to load background:\n{error}", error=e))
 
     def _upload_logo(self):
         """Open file dialog to upload logo overlay layer."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Upload Logo (Transparent PNG recommended)",
+            i18n.tr("Upload Logo (Transparent PNG recommended)"),
             "",
-            "Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)"
+            i18n.tr("Images (*.png *.jpg *.jpeg *.bmp *.gif *.webp);;All Files (*)")
         )
 
         if not file_path:
@@ -1160,8 +1161,8 @@ class CustomImageTab(QWidget):
             img_w, img_h = self.logo_image.size
             size_mb = Path(file_path).stat().st_size / (1024 * 1024)
             self.logo_info.setText(
-                f"Loaded: {Path(file_path).name}\n"
-                f"Size: {img_w}x{img_h} ({size_mb:.2f} MB)"
+                i18n.tr("Loaded: {name}\nSize: {size} ({mb:.2f} MB)", 
+                       name=Path(file_path).name, size=f"{img_w}x{img_h}", mb=size_mb)
             )
             self.logo_clear_btn.setEnabled(True)
 
@@ -1174,14 +1175,14 @@ class CustomImageTab(QWidget):
             self._schedule_update()
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load logo:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to load logo:\n{error}", error=e))
 
     def _clear_background(self):
         """Clear the background layer."""
         self.background_image = None
         self._update_composite_image()
         self.preview_cache = None
-        self.bg_info.setText("No image loaded")
+        self.bg_info.setText(i18n.tr("No image loaded"))
         self.bg_clear_btn.setEnabled(False)
         self.bg_clear_btn.setVisible(False)
         self._schedule_update()
@@ -1192,7 +1193,7 @@ class CustomImageTab(QWidget):
         self.logo_image = None
         self._update_composite_image()
         self.preview_cache = None
-        self.logo_info.setText("Transparent PNG overlay")
+        self.logo_info.setText(i18n.tr("Transparent PNG overlay"))
         self.logo_clear_btn.setEnabled(False)
         if hasattr(self, 'logo_controls_widget'):
             self.logo_controls_widget.setVisible(False)
@@ -1214,7 +1215,7 @@ class CustomImageTab(QWidget):
         if platform_key is None:
             self.current_platform = None
             self.current_border = None
-            self.border_info.setText("No border selected")
+            self.border_info.setText(i18n.tr("No border selected"))
             self._check_export_ready()
             return
 
@@ -1226,7 +1227,7 @@ class CustomImageTab(QWidget):
             self.current_border = self.borders_dir / border_file
 
             if self.current_border.exists():
-                self.border_info.setText(f"Border: {border_file}")
+                self.border_info.setText(i18n.tr("Border: {file}", file=border_file))
                 # Clear border caches when platform changes
                 self.border_cache = None
                 self.border_mask_cache = None
@@ -1234,11 +1235,11 @@ class CustomImageTab(QWidget):
                 self.border_mask_cache_full = None
                 self._schedule_update()
             else:
-                self.border_info.setText(f"Border file not found: {border_file}")
+                self.border_info.setText(i18n.tr("Border file not found: {file}", file=border_file))
                 self.current_border = None
         else:
             self.current_border = None
-            self.border_info.setText("No border file configured")
+            self.border_info.setText(i18n.tr("No border file configured"))
 
         self._check_export_ready()
 
@@ -1246,9 +1247,9 @@ class CustomImageTab(QWidget):
         """Import a custom border image."""
         file_path, _ = QFileDialog.getOpenFileName(
             self,
-            "Import Custom Border",
+            i18n.tr("Import Custom Border"),
             "",
-            "Images (*.png *.jpg *.jpeg *.bmp);;All Files (*)"
+            i18n.tr("Images (*.png *.jpg *.jpeg *.bmp);;All Files (*)")
         )
 
         if not file_path:
@@ -1262,8 +1263,8 @@ class CustomImageTab(QWidget):
             if border_img.size != (1024, 1024):
                 reply = QMessageBox.question(
                     self,
-                    "Resize Border?",
-                    f"Border is {border_img.size[0]}x{border_img.size[1]}. Resize to 1024x1024?",
+                    i18n.tr("Resize Border?"),
+                    i18n.tr("Border is {w}x{h}. Resize to 1024x1024?", w=border_img.size[0], h=border_img.size[1]),
                     QMessageBox.Yes | QMessageBox.No
                 )
 
@@ -1285,12 +1286,12 @@ class CustomImageTab(QWidget):
             self.border_cache_full = None
             self.border_mask_cache_full = None
 
-            self.border_info.setText(f"Custom border: {Path(file_path).name}")
+            self.border_info.setText(i18n.tr("Custom border: {file}", file=Path(file_path).name))
             self._schedule_update()
             self._check_export_ready()
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load border:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to load border:\n{error}", error=e))
 
     def _select_layer(self, layer: str):
         """Select which layer to transform."""
@@ -1298,7 +1299,7 @@ class CustomImageTab(QWidget):
 
         # Update active layer indicator label
         if hasattr(self, 'active_layer_label'):
-            self.active_layer_label.setText("BG" if layer == 'background' else "Logo")
+            self.active_layer_label.setText(i18n.tr("BG") if layer == 'background' else i18n.tr("Logo"))
 
         # Update preview handles
         self.preview_view.set_active_layer(layer)
@@ -1414,7 +1415,7 @@ class CustomImageTab(QWidget):
             self.position_value_label.setText(f"{self.offset_x * 100:.0f}%, {self.offset_y * 100:.0f}%")
         else:
             self.scale_spinbox.setValue(self.logo_scale * 100)
-            self.rotation_value_label.setText("—")  # Logo doesn't rotate
+            self.rotation_value_label.setText(i18n.tr("—"))  # Logo doesn't rotate
             self.position_value_label.setText(f"{self.logo_offset_x * 100:.0f}%, {self.logo_offset_y * 100:.0f}%")
         self.scale_spinbox.blockSignals(False)
 
@@ -1806,16 +1807,16 @@ class CustomImageTab(QWidget):
         if ready:
             layers_info = []
             if self.background_image is not None:
-                layers_info.append("background")
+                layers_info.append(i18n.tr("background"))
             if self.logo_image is not None:
-                layers_info.append("logo")
-            self.export_info.setText(f"Ready to export ({' + '.join(layers_info)}) at 1024x1024")
+                layers_info.append(i18n.tr("logo"))
+            self.export_info.setText(i18n.tr("Ready to export ({layers}) at 1024x1024", layers=' + '.join(layers_info)))
         elif not has_content:
-            self.export_info.setText("Upload a background or logo to export")
+            self.export_info.setText(i18n.tr("Upload a background or logo to export"))
         elif self.current_border is None:
-            self.export_info.setText("Select a platform to export")
+            self.export_info.setText(i18n.tr("Select a platform to export"))
         else:
-            self.export_info.setText("Border file not found")
+            self.export_info.setText(i18n.tr("Border file not found"))
 
     def _export_image(self):
         """Export the final image with border at full resolution (supports layers)."""
@@ -1826,9 +1827,9 @@ class CustomImageTab(QWidget):
         default_name = f"{self.current_platform}_custom.png"
         file_path, _ = QFileDialog.getSaveFileName(
             self,
-            "Export Image",
+            i18n.tr("Export Image"),
             default_name,
-            "PNG Image (*.png);;All Files (*)"
+            i18n.tr("PNG Image (*.png);;All Files (*)")
         )
 
         if not file_path:
@@ -1879,26 +1880,26 @@ class CustomImageTab(QWidget):
             result.save(file_path, "PNG")
 
             # Create summary message
-            summary = f"Image exported successfully at 1024x1024 to:\n{file_path}\n\n"
-            summary += f"Layers:\n"
+            summary = i18n.tr("Image exported successfully at 1024x1024 to:\n{path}\n\n", path=file_path)
+            summary += i18n.tr("Layers:\n")
             if self.background_image is not None:
-                summary += f"  • Background: rotation={self.rotation}°, zoom={int(self.zoom * 100)}%\n"
-                summary += f"    Position: H={int(self.offset_x * 100)}%, V={int(self.offset_y * 100)}%\n"
+                summary += i18n.tr("  • Background: rotation={rotation}°, zoom={zoom}%\n", rotation=self.rotation, zoom=int(self.zoom * 100))
+                summary += i18n.tr("    Position: H={h}%, V={v}%\n", h=int(self.offset_x * 100), v=int(self.offset_y * 100))
             if self.logo_image is not None:
-                summary += f"  • Logo: size={int(self.logo_scale * 100)}%, opacity={int(self.logo_opacity * 100)}%\n"
-                summary += f"    Position: H={int(self.logo_offset_x * 100)}%, V={int(self.logo_offset_y * 100)}%\n"
+                summary += i18n.tr("  • Logo: size={size}%, opacity={opacity}%\n", size=int(self.logo_scale * 100), opacity=int(self.logo_opacity * 100))
+                summary += i18n.tr("    Position: H={h}%, V={v}%\n", h=int(self.logo_offset_x * 100), v=int(self.logo_offset_y * 100))
 
             QMessageBox.information(
                 self,
-                "Export Complete",
+                i18n.tr("Export Complete"),
                 summary
             )
 
         except Exception as e:
             QMessageBox.critical(
                 self,
-                "Export Error",
-                f"Failed to export image:\n{e}"
+                i18n.tr("Export Error"),
+                i18n.tr("Failed to export image:\n{error}", error=e)
             )
             import traceback
             traceback.print_exc()

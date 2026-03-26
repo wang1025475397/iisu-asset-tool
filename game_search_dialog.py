@@ -13,6 +13,7 @@ from PySide6.QtWidgets import (
 )
 
 from api_key_manager import get_manager
+import i18n
 
 
 class SearchWorker(QThread):
@@ -96,7 +97,7 @@ class GameSearchDialog(QDialog):
 
     def __init__(self, parent=None, initial_query: str = "", title: str = "Search Game"):
         super().__init__(parent)
-        self.setWindowTitle(title)
+        self.setWindowTitle(i18n.tr("Search Game"))
         self.setMinimumWidth(500)
         self.setMinimumHeight(450)
 
@@ -115,7 +116,7 @@ class GameSearchDialog(QDialog):
         layout.setSpacing(12)
 
         # Header
-        header_label = QLabel("Search for the correct game to get accurate artwork")
+        header_label = QLabel(i18n.tr("Search for the correct game to get accurate artwork"))
         header_label.setObjectName("label_muted")
         header_label.setWordWrap(True)
         layout.addWidget(header_label)
@@ -125,12 +126,12 @@ class GameSearchDialog(QDialog):
         search_row.setSpacing(8)
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Enter game name...")
+        self.search_input.setPlaceholderText(i18n.tr("Enter game name..."))
         self.search_input.setMinimumHeight(36)
         self.search_input.returnPressed.connect(self._perform_search)
         search_row.addWidget(self.search_input, 1)
 
-        self.search_btn = QPushButton("Search")
+        self.search_btn = QPushButton(i18n.tr("Search"))
         self.search_btn.setMinimumWidth(80)
         self.search_btn.setMinimumHeight(36)
         self.search_btn.clicked.connect(self._perform_search)
@@ -146,7 +147,7 @@ class GameSearchDialog(QDialog):
         layout.addWidget(self.progress)
 
         # Results label
-        self.results_label = QLabel("Search Results:")
+        self.results_label = QLabel(i18n.tr("Search Results:"))
         self.results_label.setObjectName("label_accent")
         self.results_label.setVisible(False)
         layout.addWidget(self.results_label)
@@ -160,7 +161,7 @@ class GameSearchDialog(QDialog):
         layout.addWidget(self.results_list, 1)
 
         # No results label
-        self.no_results_label = QLabel("No games found. Try a different search term.")
+        self.no_results_label = QLabel(i18n.tr("No games found. Try a different search term."))
         self.no_results_label.setObjectName("label_muted")
         self.no_results_label.setAlignment(Qt.AlignCenter)
         self.no_results_label.setVisible(False)
@@ -175,11 +176,11 @@ class GameSearchDialog(QDialog):
         button_row = QHBoxLayout()
         button_row.addStretch()
 
-        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn = QPushButton(i18n.tr("Cancel"))
         self.cancel_btn.clicked.connect(self.reject)
         button_row.addWidget(self.cancel_btn)
 
-        self.select_btn = QPushButton("Select Game")
+        self.select_btn = QPushButton(i18n.tr("Select Game"))
         self.select_btn.setEnabled(False)
         self.select_btn.setObjectName("btn_start")  # Use accent styling
         self.select_btn.clicked.connect(self._on_select)
@@ -193,7 +194,7 @@ class GameSearchDialog(QDialog):
             return
 
         if not self.api_key:
-            self.no_results_label.setText("SteamGridDB API key not configured. Please add it in Settings.")
+            self.no_results_label.setText(i18n.tr("SteamGridDB API key not configured. Please add it in Settings."))
             self.no_results_label.setVisible(True)
             self.results_list.setVisible(False)
             self.results_label.setVisible(False)
@@ -248,7 +249,7 @@ class GameSearchDialog(QDialog):
         else:
             self.results_label.setVisible(False)
             self.results_list.setVisible(False)
-            self.no_results_label.setText("No games found. Try a different search term.")
+            self.no_results_label.setText(i18n.tr("No games found. Try a different search term."))
             self.no_results_label.setVisible(True)
             self.spacer.setVisible(True)
 
@@ -257,7 +258,7 @@ class GameSearchDialog(QDialog):
         self.search_btn.setEnabled(True)
         self.results_label.setVisible(False)
         self.results_list.setVisible(False)
-        self.no_results_label.setText(f"Search failed: {error_msg}")
+        self.no_results_label.setText(i18n.tr("Search failed: {error}", error=error_msg))
         self.no_results_label.setVisible(True)
         self.spacer.setVisible(True)
 

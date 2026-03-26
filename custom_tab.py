@@ -6,6 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QTabWidget, QLabel
 )
+import i18n
 
 
 class _LazySubTab(QWidget):
@@ -16,7 +17,7 @@ class _LazySubTab(QWidget):
         self.factory = factory
         layout = QVBoxLayout(self)
         layout.setAlignment(Qt.AlignCenter)
-        lbl = QLabel("Loading...")
+        lbl = QLabel(i18n.tr("Loading..."))
         lbl.setAlignment(Qt.AlignCenter)
         lbl.setObjectName("label_muted")
         layout.addWidget(lbl)
@@ -46,13 +47,13 @@ class CustomTab(QWidget):
         # Only construct the first sub-tab eagerly; defer the rest
         from custom_image_tab import CustomImageTab
         self.custom_icons_tab = CustomImageTab()
-        self.sub_tabs.addTab(self.custom_icons_tab, "Icons")
+        self.sub_tabs.addTab(self.custom_icons_tab, i18n.tr("Icons"))
 
         # Borders and Covers are lazy — constructed on first click
         self._borders_placeholder = _LazySubTab(self._make_borders_tab)
         self._covers_placeholder = _LazySubTab(self._make_covers_tab)
-        self.sub_tabs.addTab(self._borders_placeholder, "Borders")
-        self.sub_tabs.addTab(self._covers_placeholder, "Covers")
+        self.sub_tabs.addTab(self._borders_placeholder, i18n.tr("Borders"))
+        self.sub_tabs.addTab(self._covers_placeholder, i18n.tr("Covers"))
 
         self.sub_tabs.currentChanged.connect(self._on_sub_tab_changed)
         layout.addWidget(self.sub_tabs)
@@ -67,9 +68,9 @@ class CustomTab(QWidget):
             self.sub_tabs.insertTab(index, real, label)
             self.sub_tabs.setCurrentIndex(index)
             # Store reference so other code can reach it
-            if label == "Borders":
+            if label == i18n.tr("Borders"):
                 self.borders_tab = real
-            elif label == "Covers":
+            elif label == i18n.tr("Covers"):
                 self.covers_tab = real
 
     @staticmethod

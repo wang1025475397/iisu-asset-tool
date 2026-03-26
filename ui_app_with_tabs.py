@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from app_paths import get_app_dir, get_logo_path, get_theme_path, get_fonts_dir, get_src_dir, get_config_path, verify_required_assets, get_config, invalidate_config_cache
+import i18n
 
 
 class DotPatternWidget(QWidget):
@@ -578,7 +579,11 @@ class MainWindowWithTabs(QMainWindow):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("iiSU Asset Tool")
+        
+        # Initialize language from config
+        self._init_language()
+        
+        self.setWindowTitle(i18n.tr("iiSU Asset Tool"))
         # Allow smaller window sizes for different screen resolutions
         self.setMinimumSize(800, 600)
 
@@ -587,6 +592,15 @@ class MainWindowWithTabs(QMainWindow):
 
         # Set preferred size based on available screen geometry
         self._set_initial_size()
+    
+    def _init_language(self):
+        """Initialize language from config."""
+        try:
+            cfg = get_config()
+            # Use init_from_config to properly handle "auto" setting
+            i18n.init_from_config(cfg)
+        except Exception as e:
+            print(f"Failed to initialize language: {e}")
 
     def _set_initial_size(self):
         """Set initial window size based on available screen space."""
@@ -646,7 +660,7 @@ class MainWindowWithTabs(QMainWindow):
             header_layout.addWidget(logo_label)
 
         # Title - allow it to shrink if needed
-        title = QLabel("iiSU Asset Tool")
+        title = QLabel(i18n.tr("iiSU Asset Tool"))
         title.setObjectName("header")
         from PySide6.QtWidgets import QSizePolicy
         title.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Fixed)
@@ -684,7 +698,7 @@ class MainWindowWithTabs(QMainWindow):
         # Settings button - responsive sizing
         self.btn_options = QPushButton()
         self.btn_options.setFixedSize(36, 36)
-        self.btn_options.setToolTip("Settings")
+        self.btn_options.setToolTip(i18n.tr("Settings"))
         if gear_icon_path.exists():
             self.btn_options.setIcon(create_colored_icon(gear_icon_path, icon_color))
             self.btn_options.setIconSize(QSize(18, 18))
@@ -707,11 +721,11 @@ class MainWindowWithTabs(QMainWindow):
         self.asset_db_tab = LazyTabPlaceholder(lambda: AssetDBTab())
         self.soundbyte_tab = LazyTabPlaceholder(lambda: SoundbyteTab())
 
-        self.tabs.addTab(self.rom_browser_tab, "Library")
-        self.tabs.addTab(self.icon_generator_tab, "Title Search")
-        self.tabs.addTab(self.custom_tab, "Custom")
-        self.tabs.addTab(self.asset_db_tab, "iiSU Workshop")
-        self.tabs.addTab(self.soundbyte_tab, "Soundbytes")
+        self.tabs.addTab(self.rom_browser_tab, i18n.tr("Library"))
+        self.tabs.addTab(self.icon_generator_tab, i18n.tr("Title Search"))
+        self.tabs.addTab(self.custom_tab, i18n.tr("Custom"))
+        self.tabs.addTab(self.asset_db_tab, i18n.tr("iiSU Workshop"))
+        self.tabs.addTab(self.soundbyte_tab, i18n.tr("Soundbytes"))
 
         # Realize deferred tabs on first switch
         self.tabs.currentChanged.connect(self._on_tab_changed)
@@ -867,7 +881,7 @@ class MainWindowWithTabs(QMainWindow):
         else:
             self._fade_in_tab(widget)
 
-    def _realize_tab(self, index: int, placeholder: LazyTabPlaceholder):
+    def _realize_tab(self, index: int, placeholder: LazyTabPlaceholder, switch_to_tab: bool = True):
         """Replace a LazyTabPlaceholder with the real widget.
 
         Uses a zero-timer to let Qt paint the "Loading..." placeholder first,
@@ -896,7 +910,8 @@ class MainWindowWithTabs(QMainWindow):
             self.tabs.blockSignals(True)
             self.tabs.removeTab(index)
             self.tabs.insertTab(index, real_widget, label)
-            self.tabs.setCurrentIndex(index)
+            if switch_to_tab:
+                self.tabs.setCurrentIndex(index)
             self.tabs.blockSignals(False)
 
             # Fade-in the newly created tab
@@ -919,10 +934,26 @@ class MainWindowWithTabs(QMainWindow):
         self._tab_anim = anim  # prevent GC
         anim.start()
 
+
     def _ensure_icon_generator_realized(self):
-        """Force-realize the icon_generator_tab if still a placeholder."""
+        """Force-realize the icon_generator_tab if still a placeholder (synchronous)."""
         if isinstance(self.icon_generator_tab, LazyTabPlaceholder):
-            self._realize_tab(1, self.icon_generator_tab)
+            placeholder = self.icon_generator_tab
+            index = 1
+            label = self.tabs.tabText(index)
+            real_widget = placeholder.factory()
+
+            # Store reference
+            self.icon_generator_tab = real_widget
+
+            # Block signals during the swap
+            current_tab = self.tabs.currentIndex()
+            self.tabs.blockSignals(True)
+            self.tabs.removeTab(index)
+            self.tabs.insertTab(index, real_widget, label)
+            # Restore the current tab (don't switch)
+            self.tabs.setCurrentIndex(current_tab)
+            self.tabs.blockSignals(False)
 
     def closeEvent(self, event):
         """Handle window close - release music resources."""
@@ -1054,14 +1085,14 @@ class MainWindowWithTabs(QMainWindow):
         from PySide6.QtWidgets import QDialog, QTextBrowser, QDialogButtonBox
 
         dialog = QDialog(self)
-        dialog.setWindowTitle("About iiSU Asset Tool")
+        dialog.setWindowTitle(i18n.tr("About iiSU Asset Tool"))
         dialog.setMinimumSize(600, 600)
 
         layout = QVBoxLayout(dialog)
 
         text = QTextBrowser()
         text.setOpenExternalLinks(True)
-        text.setHtml("""
+        text.setHtml(i18n.tr("""
         <h2>iiSU Asset Tool</h2>
         <p>Create custom icons, borders, covers, and more for your game library.<br>
         Designed for use with the iiSU Launcher on Android devices.</p>
@@ -1134,14 +1165,14 @@ class MainWindowWithTabs(QMainWindow):
         Ensure compliance with artwork source terms of service.</p>
 
         <p style="color: #666; font-size: 10px; margin-top: 20px;">
-        Version {self.APP_VERSION} | Desktop + Android companion app available
+        Version {version} | Desktop + Android companion app available
         </p>
-        """)
+        """, version=self.APP_VERSION))
         layout.addWidget(text)
 
         # Check for Updates button (only in frozen/packaged builds)
         if getattr(sys, 'frozen', False):
-            btn_update = QPushButton("Check for Updates")
+            btn_update = QPushButton(i18n.tr("Check for Updates"))
             btn_update.setMinimumHeight(36)
             btn_update.clicked.connect(lambda: self._manual_update_check(dialog))
             layout.addWidget(btn_update)

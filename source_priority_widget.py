@@ -7,6 +7,7 @@ from PySide6.QtWidgets import (
     QListWidgetItem, QLabel, QPushButton
 )
 
+import i18n
 
 class SourceListWidget(QListWidget):
     """Custom QListWidget with drag-and-drop reordering."""
@@ -74,7 +75,7 @@ class SourcePriorityWidget(QWidget):
         layout.setContentsMargins(0, 0, 0, 0)
 
         # Header
-        header = QLabel("Artwork Source Priority (drag to reorder):")
+        header = QLabel(i18n.tr("Artwork Source Priority (drag to reorder):"))
         layout.addWidget(header)
 
         # Source list
@@ -86,11 +87,11 @@ class SourcePriorityWidget(QWidget):
         # Quick action buttons
         btn_layout = QHBoxLayout()
 
-        self.btn_enable_all = QPushButton("Enable All")
+        self.btn_enable_all = QPushButton(i18n.tr("Enable All"))
         self.btn_enable_all.clicked.connect(self._enable_all)
         btn_layout.addWidget(self.btn_enable_all)
 
-        self.btn_disable_all = QPushButton("Disable All")
+        self.btn_disable_all = QPushButton(i18n.tr("Disable All"))
         self.btn_disable_all.clicked.connect(self._disable_all)
         btn_layout.addWidget(self.btn_disable_all)
 
@@ -98,10 +99,10 @@ class SourcePriorityWidget(QWidget):
         layout.addLayout(btn_layout)
 
         # Help text
-        help_text = QLabel(
+        help_text = QLabel(i18n.tr(
             "✓ Checked sources are tried in order from top to bottom.\n"
             "Drag items to reorder. Click 'Save Config' to persist changes."
-        )
+        ))
         help_text.setWordWrap(True)
         help_text.setObjectName("label_muted")
         layout.addWidget(help_text)

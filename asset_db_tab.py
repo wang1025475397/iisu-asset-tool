@@ -29,6 +29,7 @@ import requests
 import subprocess
 import shutil
 import tempfile
+import i18n
 
 
 class FlowLayout(QLayout):
@@ -189,14 +190,14 @@ class AssetVariantCard(QFrame):
         self.preview_label.setObjectName("variant_preview")
         self.preview_label.setFixedSize(140, 140)
         self.preview_label.setAlignment(Qt.AlignCenter)
-        self.preview_label.setText("Loading...")
+        self.preview_label.setText(i18n.tr("Loading..."))
         layout.addWidget(self.preview_label)
 
         # Variant label
         if variant.variant_number > 1:
-            label_text = f"Variant {variant.variant_number}"
+            label_text = i18n.tr("Variant {n}", n=variant.variant_number)
         else:
-            label_text = "Original"
+            label_text = i18n.tr("Original")
         self.variant_label = QLabel(label_text)
         self.variant_label.setObjectName("label_accent")
         self.variant_label.setAlignment(Qt.AlignCenter)
@@ -263,7 +264,7 @@ class AssetVariantCard(QFrame):
             )
             self.preview_label.setPixmap(scaled)
         else:
-            self.preview_label.setText("No Preview")
+            self.preview_label.setText(i18n.tr("No Preview"))
 
     def set_preview_error(self, error_text: str):
         """Set error message on preview."""
@@ -340,7 +341,7 @@ class GameFolderSelectDialog(QDialog):
         self.device_path = ""
         self.adb_path = get_adb_path()
 
-        self.setWindowTitle("Select Game Folder")
+        self.setWindowTitle(i18n.tr("Select Game Folder"))
         self.setMinimumSize(500, 600)
         self.setModal(True)
 
@@ -353,26 +354,26 @@ class GameFolderSelectDialog(QDialog):
         layout.setSpacing(12)
 
         # Header
-        header = QLabel("Select a game to save assets to:")
+        header = QLabel(i18n.tr("Select a game to save assets to:"))
         header.setObjectName("label_header")
         layout.addWidget(header)
 
-        desc = QLabel("Choose an existing game from your library, or create a new folder.")
+        desc = QLabel(i18n.tr("Choose an existing game from your library, or create a new folder."))
         desc.setObjectName("label_muted")
         layout.addWidget(desc)
 
         # Search/filter
         search_row = QHBoxLayout()
-        search_row.addWidget(QLabel("Filter:"))
+        search_row.addWidget(QLabel(i18n.tr("Filter:")))
         self.filter_input = QLineEdit()
-        self.filter_input.setPlaceholderText("Type to filter games...")
+        self.filter_input.setPlaceholderText(i18n.tr("Type to filter games..."))
         self.filter_input.textChanged.connect(self._filter_games)
         search_row.addWidget(self.filter_input)
         layout.addLayout(search_row)
 
         # Game list
         self.game_tree = QTreeWidget()
-        self.game_tree.setHeaderLabels(["Platform / Game", "Has Assets"])
+        self.game_tree.setHeaderLabels([i18n.tr("Platform / Game_"), i18n.tr("Has Assets")])
         self.game_tree.setColumnWidth(0, 350)
         self.game_tree.itemDoubleClicked.connect(self._on_item_double_clicked)
         self.game_tree.itemClicked.connect(self._on_item_clicked)
@@ -383,7 +384,7 @@ class GameFolderSelectDialog(QDialog):
         new_frame.setObjectName("card")
         new_layout = QVBoxLayout(new_frame)
 
-        new_header = QLabel("Or create a new game folder:")
+        new_header = QLabel(i18n.tr("Or create a new game folder:"))
         new_header.setObjectName("label_header")
         new_layout.addWidget(new_header)
 
@@ -406,12 +407,12 @@ class GameFolderSelectDialog(QDialog):
         create_row.addWidget(self.platform_combo)
 
         self.new_game_input = QLineEdit()
-        self.new_game_input.setPlaceholderText("New game folder name...")
+        self.new_game_input.setPlaceholderText(i18n.tr("New game folder name..."))
         if suggested_name:
             self.new_game_input.setText(suggested_name)
         create_row.addWidget(self.new_game_input, 1)
 
-        self.create_btn = QPushButton("Create && Select")
+        self.create_btn = QPushButton(i18n.tr("Create && Select"))
         self.create_btn.clicked.connect(self._create_new_folder)
         create_row.addWidget(self.create_btn)
 
@@ -419,7 +420,7 @@ class GameFolderSelectDialog(QDialog):
         layout.addWidget(new_frame)
 
         # Selected path display
-        self.selected_label = QLabel("No folder selected")
+        self.selected_label = QLabel(i18n.tr("No folder selected"))
         self.selected_label.setObjectName("label_muted")
         layout.addWidget(self.selected_label)
 
@@ -428,17 +429,17 @@ class GameFolderSelectDialog(QDialog):
         device_frame.setObjectName("card")
         device_layout = QVBoxLayout(device_frame)
 
-        device_header = QLabel("Push to Android Device (ADB)")
+        device_header = QLabel(i18n.tr("Push to Android Device (ADB)"))
         device_header.setObjectName("label_header")
         device_layout.addWidget(device_header)
 
-        self.device_checkbox = QCheckBox("Push assets to connected Android device")
-        self.device_checkbox.setToolTip("Push the downloaded assets directly to your iiSU Launcher on device")
+        self.device_checkbox = QCheckBox(i18n.tr("Push assets to connected Android device"))
+        self.device_checkbox.setToolTip(i18n.tr("Push the downloaded assets directly to your iiSU Launcher on device"))
         self.device_checkbox.toggled.connect(self._on_device_checkbox_toggled)
         device_layout.addWidget(self.device_checkbox)
 
         device_path_row = QHBoxLayout()
-        device_path_row.addWidget(QLabel("Device Path:"))
+        device_path_row.addWidget(QLabel(i18n.tr("Device Path:")))
         self.device_path_input = QLineEdit(self.IISU_DEFAULT_PATH)
         self.device_path_input.setPlaceholderText(self.IISU_DEFAULT_PATH)
         self.device_path_input.setEnabled(False)
@@ -455,19 +456,19 @@ class GameFolderSelectDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.select_btn = QPushButton("Download && Push to Device")
+        self.select_btn = QPushButton(i18n.tr("Download && Push to Device"))
         self.select_btn.setObjectName("btn_primary")
         self.select_btn.setEnabled(False)
         self.select_btn.clicked.connect(self.accept)
         button_layout.addWidget(self.select_btn)
 
-        self.local_only_btn = QPushButton("Save to Local Only")
+        self.local_only_btn = QPushButton(i18n.tr("Save to Local Only"))
         self.local_only_btn.setObjectName("btn_secondary")
         self.local_only_btn.setEnabled(False)
         self.local_only_btn.clicked.connect(self._accept_local_only)
         button_layout.addWidget(self.local_only_btn)
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(i18n.tr("Cancel"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
@@ -499,11 +500,11 @@ class GameFolderSelectDialog(QDialog):
 
                 status = ""
                 if has_icon and has_hero:
-                    status = "✓ Full"
+                    status = i18n.tr("✓ Full")
                 elif has_icon:
-                    status = "✓ Icon"
+                    status = i18n.tr("✓ Icon")
                 elif has_hero:
-                    status = "✓ Hero"
+                    status = i18n.tr("✓ Hero")
 
                 game_item = QTreeWidgetItem([game_folder.name, status])
                 game_item.setData(0, Qt.UserRole, game_folder)
@@ -544,7 +545,7 @@ class GameFolderSelectDialog(QDialog):
         path = item.data(0, Qt.UserRole)
         if path:
             self.selected_path = path
-            self.selected_label.setText(f"Selected: {path}")
+            self.selected_label.setText(i18n.tr("Selected: {path}", path=path))
             self.selected_label.setStyleSheet("color: #4CAF50;")
             self.select_btn.setEnabled(True)
             self.local_only_btn.setEnabled(True)
@@ -562,27 +563,27 @@ class GameFolderSelectDialog(QDialog):
         game_name = self.new_game_input.text().strip()
 
         if not game_name:
-            QMessageBox.warning(self, "Error", "Please enter a game name.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Please enter a game name."))
             return
 
         # Sanitize folder name
         safe_name = "".join(c for c in game_name if c.isalnum() or c in " -_().").strip()
         if not safe_name:
-            QMessageBox.warning(self, "Error", "Invalid game name.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Invalid game name."))
             return
 
         new_path = self.output_dir / platform / safe_name
         try:
             new_path.mkdir(parents=True, exist_ok=True)
             self.selected_path = new_path
-            self.selected_label.setText(f"Created: {new_path}")
+            self.selected_label.setText(i18n.tr("Created: {path}", path=new_path))
             self.selected_label.setStyleSheet("color: #4CAF50;")
             self.select_btn.setEnabled(True)
             self.local_only_btn.setEnabled(True)
             # Refresh the tree
             self._scan_library()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Could not create folder:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Could not create folder:\n{error}", error=e))
 
     def _check_adb(self):
         """Check if ADB is available and device is connected."""
@@ -590,7 +591,7 @@ class GameFolderSelectDialog(QDialog):
 
         if not self.adb_path:
             self.device_checkbox.setEnabled(False)
-            self.device_status_label.setText("ADB not found. Install Android SDK Platform Tools.")
+            self.device_status_label.setText(i18n.tr("ADB not found. Install Android SDK Platform Tools."))
             self.device_status_label.setStyleSheet("color: #E53935;")
             # No device: hide push button, make local button primary
             self.select_btn.setVisible(False)
@@ -613,11 +614,11 @@ class GameFolderSelectDialog(QDialog):
                 self.device_checkbox.setEnabled(True)
                 self.device_checkbox.setChecked(True)  # Auto-enable push
                 self.device_path_input.setEnabled(True)
-                self.device_status_label.setText(f"Device connected: {devices[0]}")
+                self.device_status_label.setText(i18n.tr("Device connected: {device}", device=devices[0]))
                 self.device_status_label.setStyleSheet("color: #4CAF50;")
             else:
                 self.device_checkbox.setEnabled(False)
-                self.device_status_label.setText("No Android device connected")
+                self.device_status_label.setText(i18n.tr("No Android device connected"))
                 self.device_status_label.setStyleSheet("color: #FFB300;")
                 # No device: hide push button, make local button primary
                 self.select_btn.setVisible(False)
@@ -626,7 +627,7 @@ class GameFolderSelectDialog(QDialog):
                 self.local_only_btn.style().polish(self.local_only_btn)
         except Exception as e:
             self.device_checkbox.setEnabled(False)
-            self.device_status_label.setText(f"ADB error: {str(e)[:50]}")
+            self.device_status_label.setText(i18n.tr("ADB error: {error}", error=str(e)[:50]))
             self.device_status_label.setStyleSheet("color: #E53935;")
             self.select_btn.setVisible(False)
             self.local_only_btn.setObjectName("btn_primary")
@@ -667,7 +668,7 @@ class AssetPreviewPopup(QDialog):
         self.db = db
         self._image_cache: Dict[str, QPixmap] = {}
 
-        self.setWindowTitle(f"Asset Preview - {variant.game_name}")
+        self.setWindowTitle(f"{variant.game_name} - {i18n.tr('Asset Preview - {name}', name=variant.game_name)}")
         self.setMinimumSize(700, 550)
         self.setModal(True)
 
@@ -683,7 +684,7 @@ class AssetPreviewPopup(QDialog):
         header.setObjectName("label_header")
         layout.addWidget(header)
 
-        variant_label = QLabel(f"Variant {self.variant.variant_number} • {self.variant.platform}")
+        variant_label = QLabel(i18n.tr("Variant {n} • {platform}", n=self.variant.variant_number, platform=self.variant.platform))
         variant_label.setObjectName("label_muted")
         layout.addWidget(variant_label)
 
@@ -702,7 +703,7 @@ class AssetPreviewPopup(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        close_btn = QPushButton("Close")
+        close_btn = QPushButton(i18n.tr("Close"))
         close_btn.clicked.connect(self.accept)
         button_layout.addWidget(close_btn)
 
@@ -719,7 +720,7 @@ class AssetPreviewPopup(QDialog):
             preview.setObjectName("asset_preview_frame")
             preview.setFixedSize(preview_size[0], preview_size[1])
             preview.setAlignment(Qt.AlignCenter)
-            preview.setText("Loading...")
+            preview.setText(i18n.tr("Loading..."))
             tab_layout.addWidget(preview, 0, Qt.AlignCenter)
 
             info = QLabel(asset.filename)
@@ -731,7 +732,7 @@ class AssetPreviewPopup(QDialog):
             setattr(self, f"{asset_type.value}_preview", preview)
             setattr(self, f"{asset_type.value}_info", info)
         else:
-            no_asset = QLabel(f"No {label.lower()} in this variant")
+            no_asset = QLabel(i18n.tr("No {type} in this variant", type=label.lower()))
             no_asset.setObjectName("label_muted")
             no_asset.setAlignment(Qt.AlignCenter)
             tab_layout.addWidget(no_asset)
@@ -788,14 +789,14 @@ class AssetPreviewPopup(QDialog):
                             self._set_preview_image(lbl, info, data, fn, ms)
                         )
                     else:
-                        QTimer.singleShot(0, lambda lbl=preview_label: lbl.setText("Invalid image"))
+                        QTimer.singleShot(0, lambda lbl=preview_label: lbl.setText(i18n.tr("Invalid image")))
                 else:
                     status = response.status_code
-                    QTimer.singleShot(0, lambda lbl=preview_label, s=status: lbl.setText(f"HTTP {s}"))
+                    QTimer.singleShot(0, lambda lbl=preview_label, s=status: lbl.setText(i18n.tr("HTTP {status}", status=s)))
             except Exception as e:
                 print(f"Error loading preview: {e}")
                 error_msg = str(e)[:30]
-                QTimer.singleShot(0, lambda lbl=preview_label, msg=error_msg: lbl.setText(f"Error: {msg}"))
+                QTimer.singleShot(0, lambda lbl=preview_label, msg=error_msg: lbl.setText(i18n.tr("Error: {error}", error=msg)))
 
         thread = threading.Thread(target=load_thread)
         thread.daemon = True
@@ -820,11 +821,11 @@ class AssetPreviewPopup(QDialog):
 
                 # Update info label with dimensions
                 if info_label:
-                    info_label.setText(f"{filename} ({pixmap.width()} x {pixmap.height()})")
+                    info_label.setText(i18n.tr("{filename} ({width} x {height})", filename=filename, width=pixmap.width(), height=pixmap.height()))
             else:
-                preview_label.setText("Failed to load")
+                preview_label.setText(i18n.tr("Failed to load"))
         except Exception as e:
-            preview_label.setText(f"Error: {str(e)[:30]}")
+            preview_label.setText(i18n.tr("Error: {error}", error=str(e)[:30]))
 
 
 class GameDetailDialogSignals(QObject):
@@ -855,13 +856,19 @@ class GameDetailDialog(QDialog):
         self._signals.variants_scanned.connect(self._on_variants_scanned)
         self._signals.preview_loaded.connect(self._on_preview_loaded)
         self._signals.preview_error.connect(self._on_preview_error)
+        self._is_closing = False
 
-        self.setWindowTitle(f"{game.game_name} - iiSU Workshop")
+        self.setWindowTitle(f"{game.game_name} - {i18n.tr('iiSU Workshop')}")
         self.setMinimumSize(850, 650)
         self.setModal(True)
 
         self._setup_ui()
         self._scan_and_load_variants()
+
+    def closeEvent(self, event):
+        """Mark dialog as closing to stop background threads from emitting signals."""
+        self._is_closing = True
+        super().closeEvent(event)
 
     def _setup_ui(self):
         layout = QVBoxLayout(self)
@@ -873,12 +880,12 @@ class GameDetailDialog(QDialog):
         header.setObjectName("label_header")
         header_layout.addWidget(header)
 
-        platform_label = QLabel(f"Platform: {self.game.platform}")
+        platform_label = QLabel(i18n.tr("Platform: {platform}", platform=self.game.platform))
         platform_label.setObjectName("label_muted")
         header_layout.addWidget(platform_label)
         header_layout.addStretch()
 
-        self.variants_label = QLabel(f"Available Variants ({self.game.variant_count})")
+        self.variants_label = QLabel(i18n.tr("Available Variants ({n})", n=self.game.variant_count))
         self.variants_label.setObjectName("label_accent")
         header_layout.addWidget(self.variants_label)
 
@@ -899,7 +906,7 @@ class GameDetailDialog(QDialog):
         layout.addWidget(self.tab_widget, 1)
 
         # Loading indicator
-        self.loading_label = QLabel("Loading variants...")
+        self.loading_label = QLabel(i18n.tr("Loading variants..."))
         self.loading_label.setAlignment(Qt.AlignCenter)
         self.loading_label.setObjectName("label_warning")
         layout.addWidget(self.loading_label)
@@ -911,7 +918,7 @@ class GameDetailDialog(QDialog):
         select_main = QVBoxLayout(self.select_frame)
         select_main.setSpacing(8)
 
-        select_header = QLabel("Mix && Match — choose a variant for each asset type:")
+        select_header = QLabel(i18n.tr("Mix && Match — choose a variant for each asset type:"))
         select_header.setObjectName("label_header")
         select_main.addWidget(select_header)
 
@@ -948,7 +955,7 @@ class GameDetailDialog(QDialog):
         # Buttons
         button_layout = QHBoxLayout()
 
-        self.download_btn = QPushButton("Download && Replace")
+        self.download_btn = QPushButton(i18n.tr("Download && Replace"))
         self.download_btn.setObjectName("btn_primary")
         self.download_btn.setEnabled(False)
         self.download_btn.clicked.connect(self._on_download)
@@ -956,7 +963,7 @@ class GameDetailDialog(QDialog):
 
         button_layout.addStretch()
 
-        cancel_btn = QPushButton("Close")
+        cancel_btn = QPushButton(i18n.tr("Close"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
@@ -991,7 +998,10 @@ class GameDetailDialog(QDialog):
                 except Exception as e:
                     print(f"Error scanning variant {variant.folder_name}: {e}")
                     scanned.append(variant)
-            signals.variants_scanned.emit(scanned)
+            try:
+                signals.variants_scanned.emit(scanned)
+            except RuntimeError:
+                pass  # Signal source deleted
 
         thread = threading.Thread(target=scan_all)
         thread.daemon = True
@@ -1011,7 +1021,7 @@ class GameDetailDialog(QDialog):
 
             first_with_assets = -1
             for i, variant in enumerate(scanned_variants):
-                v_label = f"Variant {variant.variant_number}" if variant.variant_number > 1 else "Original"
+                v_label = i18n.tr("Variant {n}", n=variant.variant_number) if variant.variant_number > 1 else i18n.tr("Original")
                 # Check if this variant has this asset type
                 has = variant.get_asset(asset_type) is not None
                 count_str = ""
@@ -1021,7 +1031,7 @@ class GameDetailDialog(QDialog):
                     if first_with_assets < 0:
                         first_with_assets = combo.count() - 1
                 else:
-                    combo.addItem(f"{v_label} — no assets", i)
+                    combo.addItem(f"{v_label} — {i18n.tr('No assets')}", i)
                     item_idx = combo.count() - 1
                     combo.model().item(item_idx).setEnabled(False)
 
@@ -1063,13 +1073,13 @@ class GameDetailDialog(QDialog):
                 assets = [variant.get_asset(asset_type)] if variant.get_asset(asset_type) else []
                 assets = [a for a in assets if a]
                 if assets:
-                    status.setText(f"{len(assets)} file(s)")
+                    status.setText(i18n.tr("{n} file(s)", n=len(assets)))
                     status.setStyleSheet("color: #4CAF50;")
                 else:
-                    status.setText("No files")
+                    status.setText(i18n.tr("No files"))
                     status.setStyleSheet("color: #808080;")
             else:
-                status.setText("Skipped")
+                status.setText(i18n.tr("Skipped"))
                 status.setStyleSheet("color: #808080;")
 
     def _populate_asset_tabs(self):
@@ -1099,7 +1109,7 @@ class GameDetailDialog(QDialog):
         layout = QVBoxLayout(column)
         layout.setSpacing(8)
 
-        header_text = f"Variant {variant.variant_number}" if variant.variant_number > 1 else "Original"
+        header_text = i18n.tr("Variant {n}", n=variant.variant_number) if variant.variant_number > 1 else i18n.tr("Original")
         header = QLabel(header_text)
         header.setObjectName("label_accent")
         header.setAlignment(Qt.AlignCenter)
@@ -1115,7 +1125,7 @@ class GameDetailDialog(QDialog):
             preview_size = (150, 150)
 
         if not assets:
-            no_asset = QLabel("No assets")
+            no_asset = QLabel(i18n.tr("No assets"))
             no_asset.setObjectName("label_muted")
             no_asset.setAlignment(Qt.AlignCenter)
             layout.addWidget(no_asset)
@@ -1129,7 +1139,7 @@ class GameDetailDialog(QDialog):
                 preview = QLabel()
                 preview.setFixedSize(preview_size[0], preview_size[1])
                 preview.setAlignment(Qt.AlignCenter)
-                preview.setText("Loading...")
+                preview.setText(i18n.tr("Loading..."))
                 preview_layout.addWidget(preview)
 
                 filename_label = QLabel(asset.filename)
@@ -1184,14 +1194,26 @@ class GameDetailDialog(QDialog):
                 if response.status_code == 200:
                     image_data = response.content
                     if len(image_data) > 4 and image_data[:4] in [b'\x89PNG', b'\xff\xd8\xff\xe0', b'\xff\xd8\xff\xe1', b'\xff\xd8\xff\xdb', b'GIF8', b'RIFF']:
-                        signals.preview_loaded.emit(key, image_data)
+                        try:
+                            signals.preview_loaded.emit(key, image_data)
+                        except RuntimeError:
+                            pass  # Signal source deleted
                     else:
-                        signals.preview_error.emit(key, "Invalid")
+                        try:
+                            signals.preview_error.emit(key, "Invalid")
+                        except RuntimeError:
+                            pass  # Signal source deleted
                 else:
-                    signals.preview_error.emit(key, f"HTTP {response.status_code}")
+                    try:
+                        signals.preview_error.emit(key, f"HTTP {response.status_code}")
+                    except RuntimeError:
+                        pass  # Signal source deleted
             except Exception as e:
                 print(f"Error loading {key}: {e}")
-                signals.preview_error.emit(key, "Error")
+                try:
+                    signals.preview_error.emit(key, "Error")
+                except RuntimeError:
+                    pass  # Signal source deleted
 
         thread = threading.Thread(target=load)
         thread.daemon = True
@@ -1214,7 +1236,7 @@ class GameDetailDialog(QDialog):
             scaled = pixmap.scaled(label.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
             label.setPixmap(scaled)
         except Exception:
-            label.setText("Failed")
+            label.setText(i18n.tr("Failed"))
 
     def _on_preview_error(self, key: str, error: str):
         """Handle preview error signal (called on main thread)."""
@@ -1232,8 +1254,8 @@ class GameDetailDialog(QDialog):
         if self._type_selections:
             self.accept()
         else:
-            QMessageBox.warning(self, "Nothing Selected",
-                                "Please select at least one asset type to download.")
+            QMessageBox.warning(self, i18n.tr("Nothing Selected"),
+                                i18n.tr("Please select at least one asset type to download."))
 
     def get_mixed_selections(self) -> Dict[AssetType, ThemedAssetVariant]:
         """Get the per-type variant selections for download."""
@@ -1259,7 +1281,7 @@ class UploadDialog(QDialog):
         self.platforms = platforms
         self._selected_file: Optional[Path] = None
 
-        self.setWindowTitle("Upload to iiSU Workshop")
+        self.setWindowTitle(i18n.tr("Upload to iiSU Workshop"))
         self.setMinimumSize(500, 400)
         self.setModal(True)
 
@@ -1270,11 +1292,11 @@ class UploadDialog(QDialog):
         layout.setSpacing(12)
 
         # Header
-        header = QLabel("Upload Asset")
+        header = QLabel(i18n.tr("Upload Asset"))
         header.setObjectName("label_header")
         layout.addWidget(header)
 
-        desc = QLabel("Share your assets on the iiSU Workshop!")
+        desc = QLabel(i18n.tr("Share your assets on the iiSU Workshop!"))
         desc.setObjectName("label_muted")
         layout.addWidget(desc)
 
@@ -1284,11 +1306,11 @@ class UploadDialog(QDialog):
         file_layout = QVBoxLayout(file_frame)
 
         file_row = QHBoxLayout()
-        self.file_label = QLabel("No file selected")
+        self.file_label = QLabel(i18n.tr("No file selected"))
         self.file_label.setObjectName("label_muted")
         file_row.addWidget(self.file_label, 1)
 
-        self.file_btn = QPushButton("Browse...")
+        self.file_btn = QPushButton(i18n.tr("Browse..."))
         self.file_btn.clicked.connect(self._browse_file)
         file_row.addWidget(self.file_btn)
         file_layout.addLayout(file_row)
@@ -1309,15 +1331,15 @@ class UploadDialog(QDialog):
 
         # Game name
         name_row = QHBoxLayout()
-        name_row.addWidget(QLabel("Game Name:"))
+        name_row.addWidget(QLabel(i18n.tr("Game Name:")))
         self.game_name_input = QLineEdit()
-        self.game_name_input.setPlaceholderText("e.g., Super Mario World")
+        self.game_name_input.setPlaceholderText(i18n.tr("e.g., Super Mario World"))
         name_row.addWidget(self.game_name_input, 1)
         form_layout.addLayout(name_row)
 
         # Platform
         platform_row = QHBoxLayout()
-        platform_row.addWidget(QLabel("Platform:"))
+        platform_row.addWidget(QLabel(i18n.tr("Platform:")))
         self.platform_combo = QComboBox()
         for p in self.platforms:
             self.platform_combo.addItem(p)
@@ -1326,7 +1348,7 @@ class UploadDialog(QDialog):
 
         # Asset type
         type_row = QHBoxLayout()
-        type_row.addWidget(QLabel("Asset Type:"))
+        type_row.addWidget(QLabel(i18n.tr("Asset Type:")))
         self.type_combo = QComboBox()
         self.type_combo.addItems(["icon", "hero", "logo"])
         self.type_combo.currentTextChanged.connect(self._on_type_changed)
@@ -1335,7 +1357,7 @@ class UploadDialog(QDialog):
 
         # Variant number
         variant_row = QHBoxLayout()
-        variant_row.addWidget(QLabel("Variant:"))
+        variant_row.addWidget(QLabel(i18n.tr("Variant:")))
         self.variant_spin = QComboBox()
         self.variant_spin.addItems([str(i) for i in range(1, 11)])
         variant_row.addWidget(self.variant_spin, 1)
@@ -1357,13 +1379,13 @@ class UploadDialog(QDialog):
         button_layout = QHBoxLayout()
         button_layout.addStretch()
 
-        self.upload_btn = QPushButton("Upload")
+        self.upload_btn = QPushButton(i18n.tr("Upload"))
         self.upload_btn.setObjectName("btn_primary")
         self.upload_btn.setEnabled(False)
         self.upload_btn.clicked.connect(self._do_upload)
         button_layout.addWidget(self.upload_btn)
 
-        cancel_btn = QPushButton("Cancel")
+        cancel_btn = QPushButton(i18n.tr("Cancel"))
         cancel_btn.clicked.connect(self.reject)
         button_layout.addWidget(cancel_btn)
 
@@ -1412,7 +1434,7 @@ class UploadDialog(QDialog):
 
         game_name = self.game_name_input.text().strip()
         if not game_name:
-            QMessageBox.warning(self, "Error", "Please enter a game name.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Please enter a game name."))
             return
 
         platform = self.platform_combo.currentText()
@@ -1420,7 +1442,7 @@ class UploadDialog(QDialog):
         variant_number = int(self.variant_spin.currentText())
 
         self.upload_btn.setEnabled(False)
-        self.upload_status.setText("Uploading...")
+        self.upload_status.setText(i18n.tr("Uploading..."))
         self.upload_status.setStyleSheet("color: #FFB300;")
         self.upload_progress.setVisible(True)
 
@@ -1451,19 +1473,19 @@ class UploadDialog(QDialog):
         self.upload_btn.setEnabled(True)
 
         if result.get('success'):
-            self.upload_status.setText("Upload successful!")
+            self.upload_status.setText(i18n.tr("Upload successful!"))
             self.upload_status.setStyleSheet("color: #8FFFB1;")
-            QMessageBox.information(self, "Upload Complete", result.get('message', 'Asset uploaded successfully!'))
+            QMessageBox.information(self, i18n.tr("Upload Complete"), result.get('message', i18n.tr('Asset uploaded successfully!')))
             self.accept()
         else:
-            self.upload_status.setText(f"Upload failed: {result.get('message', 'Unknown error')}")
+            self.upload_status.setText(i18n.tr("Upload failed: {error}", error=result.get('message', i18n.tr('Unknown error'))))
             self.upload_status.setStyleSheet("color: #ff6464;")
 
     def _on_upload_error(self, error: str):
         """Handle upload error."""
         self.upload_progress.setVisible(False)
         self.upload_btn.setEnabled(True)
-        self.upload_status.setText(f"Error: {error}")
+        self.upload_status.setText(i18n.tr("Error: {error}", error=error))
         self.upload_status.setStyleSheet("color: #ff6464;")
 
 
@@ -1494,6 +1516,7 @@ class AssetDBTab(QWidget):
         self._signals.device_push_progress.connect(self._on_device_push_progress)
         self._signals.device_push_complete.connect(self._on_device_push_complete)
         self._signals.device_push_error.connect(self._on_device_push_error)
+        self._is_closing = False
 
         # Device push settings (from download dialog)
         self._pending_device_push = False
@@ -1568,13 +1591,13 @@ class AssetDBTab(QWidget):
         title.setMinimumHeight(28)
         title_row.addWidget(title)
 
-        self.stats_label = QLabel("Not connected")
+        self.stats_label = QLabel(i18n.tr("Not connected"))
         self.stats_label.setObjectName("workshop_card_badge")
         title_row.addWidget(self.stats_label)
         title_row.addStretch()
         header_text.addLayout(title_row)
 
-        desc = QLabel("Browse and download community icons, covers, and borders for iiSU Launcher.")
+        desc = QLabel(i18n.tr("Browse and download community icons, covers, and borders for iiSU Launcher."))
         desc.setObjectName("workshop_card_badge")
         header_text.addWidget(desc)
 
@@ -1609,13 +1632,13 @@ class AssetDBTab(QWidget):
         btn_layout = QVBoxLayout()
         btn_layout.setSpacing(6)
 
-        self.refresh_btn = QPushButton("Refresh")
+        self.refresh_btn = QPushButton(i18n.tr("Refresh"))
         self.refresh_btn.setObjectName("btn_secondary")
         self.refresh_btn.clicked.connect(self._refresh_db)
         self.refresh_btn.setEnabled(False)
         btn_layout.addWidget(self.refresh_btn)
 
-        self.upload_btn = QPushButton("Upload")
+        self.upload_btn = QPushButton(i18n.tr("Upload"))
         self.upload_btn.setObjectName("btn_primary")
         self.upload_btn.clicked.connect(self._show_upload_dialog)
         self.upload_btn.setEnabled(False)
@@ -1631,14 +1654,14 @@ class AssetDBTab(QWidget):
         connect_layout = QHBoxLayout(self.connect_card)
         connect_layout.setContentsMargins(10, 8, 10, 8)
 
-        connect_label = QLabel("Server:")
+        connect_label = QLabel(i18n.tr("Server:"))
         connect_layout.addWidget(connect_label)
 
         self.server_input = QLineEdit(self.server_url)
-        self.server_input.setPlaceholderText("https://assets.iisu.community")
+        self.server_input.setPlaceholderText(i18n.tr("https://assets.iisu.community"))
         connect_layout.addWidget(self.server_input, 1)
 
-        self.connect_btn = QPushButton("Connect")
+        self.connect_btn = QPushButton(i18n.tr("Connect"))
         self.connect_btn.setObjectName("btn_primary")
         self.connect_btn.clicked.connect(self._connect_to_db)
         connect_layout.addWidget(self.connect_btn)
@@ -1665,15 +1688,15 @@ class AssetDBTab(QWidget):
         # Source filter (labelled)
         source_group = QVBoxLayout()
         source_group.setSpacing(2)
-        source_label = QLabel("SOURCE")
+        source_label = QLabel(i18n.tr("SOURCE"))
         source_label.setObjectName("filter_label")
         source_group.addWidget(source_label)
         self.source_combo = QComboBox()
         self.source_combo.setObjectName("filter_combo")
         self.source_combo.setMinimumWidth(140)
-        self.source_combo.addItem("All", "all")
-        self.source_combo.addItem("Official (iiSU)", "official")
-        self.source_combo.addItem("Community", "community")
+        self.source_combo.addItem(i18n.tr("All"), "all")
+        self.source_combo.addItem(i18n.tr("Official (iiSU)"), "official")
+        self.source_combo.addItem(i18n.tr("Community"), "community")
         self.source_combo.currentIndexChanged.connect(self._on_source_changed)
         source_group.addWidget(self.source_combo)
         filter_layout.addLayout(source_group)
@@ -1681,7 +1704,7 @@ class AssetDBTab(QWidget):
         # Platform filter (labelled)
         platform_group = QVBoxLayout()
         platform_group.setSpacing(2)
-        platform_label = QLabel("PLATFORM")
+        platform_label = QLabel(i18n.tr("PLATFORM"))
         platform_label.setObjectName("filter_label")
         platform_group.addWidget(platform_label)
         self.platform_combo = QComboBox()
@@ -1694,11 +1717,11 @@ class AssetDBTab(QWidget):
         # Search input
         search_group = QVBoxLayout()
         search_group.setSpacing(2)
-        search_label = QLabel("SEARCH")
+        search_label = QLabel(i18n.tr("SEARCH"))
         search_label.setObjectName("filter_label")
         search_group.addWidget(search_label)
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("Search games...")
+        self.search_input.setPlaceholderText(i18n.tr("Search games..."))
         self.search_input.textChanged.connect(self._filter_games)
         search_group.addWidget(self.search_input)
         filter_layout.addLayout(search_group, 1)
@@ -1721,7 +1744,7 @@ class AssetDBTab(QWidget):
         layout.addWidget(self.games_scroll, 1)
 
         # ── Status bar ───────────────────────────────────────────────
-        self.status_label = QLabel("Ready")
+        self.status_label = QLabel(i18n.tr("Ready"))
         self.status_label.setObjectName("workshop_card_badge")
         layout.addWidget(self.status_label)
 
@@ -1731,7 +1754,7 @@ class AssetDBTab(QWidget):
         if not server_url:
             server_url = self.DEFAULT_SERVER_URL
 
-        self.connect_status.setText("Connecting to iiSU Workshop...")
+        self.connect_status.setText(i18n.tr("Connecting to iiSU Workshop..."))
         self.connect_status.setStyleSheet("color: #FFB300;")
         self.connect_btn.setEnabled(False)
         self.connect_progress.setVisible(True)
@@ -1742,12 +1765,21 @@ class AssetDBTab(QWidget):
             try:
                 self.db = IisuAssetDBLocal(server_url)
                 if not self.db.is_server_available():
-                    signals.connect_error.emit("iiSU Workshop server unreachable")
+                    try:
+                        signals.connect_error.emit("iiSU Workshop server unreachable")
+                    except RuntimeError:
+                        pass  # Signal source deleted
                     return
                 success = self.db.scan()
-                signals.connected.emit(success)
+                try:
+                    signals.connected.emit(success)
+                except RuntimeError:
+                    pass  # Signal source deleted
             except Exception as e:
-                signals.connect_error.emit(str(e))
+                try:
+                    signals.connect_error.emit(str(e))
+                except RuntimeError:
+                    pass  # Signal source deleted
 
         thread = threading.Thread(target=scan_thread)
         thread.daemon = True
@@ -1761,7 +1793,7 @@ class AssetDBTab(QWidget):
         if success and self.db:
             stats = self.db.get_stats()
 
-            self.connect_status.setText("Connected!")
+            self.connect_status.setText(i18n.tr("Connected!"))
             self.connect_status.setStyleSheet("color: #4CAF50;")
 
             self.stats_label.setText(
@@ -1780,14 +1812,14 @@ class AssetDBTab(QWidget):
             # Save config
             self._save_config()
         else:
-            self.connect_status.setText("Failed to scan database")
+            self.connect_status.setText(i18n.tr("Failed to scan database"))
             self.connect_status.setStyleSheet("color: #E53935;")
 
     def _on_connect_error(self, error: str):
         """Handle connection error."""
         self.connect_btn.setEnabled(True)
         self.connect_progress.setVisible(False)
-        self.connect_status.setText(f"Error: {error}")
+        self.connect_status.setText(i18n.tr("Error: {error}", error=error))
         self.connect_status.setStyleSheet("color: #E53935;")
 
     def _save_config(self):
@@ -1815,14 +1847,17 @@ class AssetDBTab(QWidget):
     def _refresh_db(self):
         """Refresh the database."""
         if self.db:
-            self.status_label.setText("Refreshing...")
+            self.status_label.setText(i18n.tr("Refreshing..."))
             self.refresh_btn.setEnabled(False)
 
             signals = self._signals
 
             def refresh_thread():
                 success = self.db.scan(force=True)
-                signals.refreshed.emit(success)
+                try:
+                    signals.refreshed.emit(success)
+                except RuntimeError:
+                    pass  # Signal source deleted
 
             thread = threading.Thread(target=refresh_thread)
             thread.daemon = True
@@ -1835,13 +1870,13 @@ class AssetDBTab(QWidget):
         if success:
             stats = self.db.get_stats()
             self.stats_label.setText(
-                f"{stats['platforms']} platforms • {stats['total_games']} games • "
-                f"{stats['total_variants']} variants"
+                i18n.tr("{platforms} platforms • {games} games • {variants} variants",
+                    platforms=stats['platforms'], games=stats['total_games'], variants=stats['total_variants'])
             )
             self._populate_platforms()
-            self.status_label.setText("Database refreshed")
+            self.status_label.setText(i18n.tr("Database refreshed"))
         else:
-            self.status_label.setText("Refresh failed")
+            self.status_label.setText(i18n.tr("Refresh failed"))
 
     def _populate_platforms(self):
         """Populate the platform dropdown."""
@@ -1853,7 +1888,7 @@ class AssetDBTab(QWidget):
             return
 
         # Add "All Games" option
-        self.platform_combo.addItem("All Games", None)
+        self.platform_combo.addItem(i18n.tr("All Games"), None)
 
         # Add platforms (skip empty ones)
         for platform in self.db.get_platforms():
@@ -1910,7 +1945,7 @@ class AssetDBTab(QWidget):
         # Get games
         if platform == "android_apps":
             # TODO: Handle apps separately
-            self.status_label.setText("Android apps view coming soon")
+            self.status_label.setText(i18n.tr("Android apps view coming soon"))
             return
         elif platform is None:
             # All games
@@ -1936,8 +1971,8 @@ class AssetDBTab(QWidget):
         self._pending_games = list(games)
         self._pending_total = len(games)
         self._batch_index = 0
-        self.status_label.setText(f"Loading {self._pending_total} games...")
-        self.game_count_label.setText(f"{self._pending_total} games")
+        self.status_label.setText(i18n.tr("Loading {count} games...", count=self._pending_total))
+        self.game_count_label.setText(i18n.tr("{count} games", count=self._pending_total))
         self._display_next_batch()
 
     def _display_next_batch(self, batch_size: int = 12):
@@ -1951,8 +1986,8 @@ class AssetDBTab(QWidget):
             # Small delay lets the UI process paint events between batches
             QTimer.singleShot(16, self._display_next_batch)
         else:
-            self.status_label.setText(f"Showing {self._pending_total} games")
-            self.game_count_label.setText(f"{self._pending_total} games")
+            self.status_label.setText(i18n.tr("Showing {count} games", count=self._pending_total))
+            self.game_count_label.setText(i18n.tr("{count} games", count=self._pending_total))
 
     def _create_game_card(self, game: ThemedGame) -> QFrame:
         """Create a glass-styled card for a game."""
@@ -2082,14 +2117,19 @@ class AssetDBTab(QWidget):
             self._active_loaders += 1
             db = self.db
             signals = self._signals
+            is_closing = lambda: self._is_closing
 
             def load_preview(pid=preview_id, var=variant):
                 try:
+                    if is_closing():
+                        return
                     # Scan the variant folder to get assets (on-demand loading)
                     scanned_variant = db.get_variant_with_assets(var)
                     icon_asset = scanned_variant.get_asset(AssetType.ICON)
 
                     if icon_asset:
+                        if is_closing():
+                            return
                         # Use the preview URL which is more reliable than download URL
                         preview_url = icon_asset.get_preview_url(width=256)
                         response = db.session.get(preview_url, timeout=10)
@@ -2103,15 +2143,31 @@ class AssetDBTab(QWidget):
                         if response.status_code != 200 or 'image' not in response.headers.get('Content-Type', ''):
                             response = db.session.get(icon_asset.download_url, timeout=10)
 
+                        if is_closing():
+                            return
                         if response.status_code == 200:
                             # Send raw bytes - QPixmap must be created on main thread
-                            signals.image_loaded.emit(pid, response.content)
+                            try:
+                                signals.image_loaded.emit(pid, response.content)
+                            except RuntimeError:
+                                pass  # Signal source deleted
                         else:
-                            signals.image_loaded.emit(pid, b'')
+                            try:
+                                signals.image_loaded.emit(pid, b'')
+                            except RuntimeError:
+                                pass  # Signal source deleted
                     else:
-                        signals.image_loaded.emit(pid, b'')
+                        if not is_closing():
+                            try:
+                                signals.image_loaded.emit(pid, b'')
+                            except RuntimeError:
+                                pass  # Signal source deleted
                 except Exception as e:
-                    signals.image_loaded.emit(pid, b'')
+                    if not is_closing():
+                        try:
+                            signals.image_loaded.emit(pid, b'')
+                        except RuntimeError:
+                            pass  # Signal source deleted
 
             thread = threading.Thread(target=load_preview)
             thread.daemon = True
@@ -2220,7 +2276,7 @@ class AssetDBTab(QWidget):
                     download_list.append((asset.download_url, "logo.png", "Logo"))
 
         if not download_list:
-            QMessageBox.warning(self, "Nothing to Download", "No assets found in the selected variants.")
+            QMessageBox.warning(self, i18n.tr("Nothing to Download"), i18n.tr("No assets found in the selected variants."))
             return
 
         # Check for existing files
@@ -2244,7 +2300,7 @@ class AssetDBTab(QWidget):
         self._device_push_platform = platform
         self._device_push_game_name = game_name
 
-        self.status_label.setText(f"Downloading assets for {game_name}...")
+        self.status_label.setText(i18n.tr("Downloading assets for {game}...", game=game_name))
 
         signals = self._signals
 
@@ -2252,7 +2308,10 @@ class AssetDBTab(QWidget):
             try:
                 total = len(download_list)
                 for i, (url, filename, display) in enumerate(download_list):
-                    signals.download_progress.emit(i + 1, total, display)
+                    try:
+                        signals.download_progress.emit(i + 1, total, display)
+                    except RuntimeError:
+                        pass  # Signal source deleted
 
                     response = requests.get(url, timeout=30)
                     response.raise_for_status()
@@ -2261,10 +2320,16 @@ class AssetDBTab(QWidget):
                     with open(target_path, 'wb') as f:
                         f.write(response.content)
 
-                signals.download_complete.emit(str(game_folder))
+                try:
+                    signals.download_complete.emit(str(game_folder))
+                except RuntimeError:
+                    pass  # Signal source deleted
 
             except Exception as e:
-                signals.download_error.emit(str(e))
+                try:
+                    signals.download_error.emit(str(e))
+                except RuntimeError:
+                    pass  # Signal source deleted
 
         thread = threading.Thread(target=download_all)
         thread.daemon = True
@@ -2272,7 +2337,7 @@ class AssetDBTab(QWidget):
 
     def _on_download_progress(self, current: int, total: int, filename: str):
         """Handle download progress update."""
-        self.status_label.setText(f"Downloading {current}/{total}: {filename}")
+        self.status_label.setText(i18n.tr("Downloading {current}/{total}: {filename}", current=current, total=total, filename=filename))
         self.status_label.setStyleSheet("color: #FFB300;")
 
     def _on_download_complete(self, game_folder: str):
@@ -2285,27 +2350,24 @@ class AssetDBTab(QWidget):
             self._push_to_device(game_folder)
             return
 
-        self.status_label.setText(f"Downloaded assets to: {game_name}")
+        self.status_label.setText(i18n.tr("Downloaded assets to: {game}", game=game_name))
         self.status_label.setStyleSheet("color: #4CAF50;")
 
         QMessageBox.information(
-            self, "Download Complete",
-            f"Assets downloaded successfully!\n\n"
-            f"Game: {game_name}\n"
-            f"Location: {game_folder}"
+            self, i18n.tr("Download Complete"),
+            i18n.tr("Assets downloaded successfully!\n\nGame: {game}\nLocation: {location}",
+                game=game_name, location=game_folder)
         )
 
     def _push_to_device(self, game_folder: str):
         """Push downloaded assets to Android device via ADB."""
         adb_path = get_adb_path()
         if not adb_path:
-            self.status_label.setText("ADB not found - assets saved locally only")
+            self.status_label.setText(i18n.tr("ADB not found - assets saved locally only"))
             self.status_label.setStyleSheet("color: #FFB300;")
             QMessageBox.warning(
-                self, "ADB Not Found",
-                f"Assets downloaded locally but could not push to device.\n"
-                f"ADB is not installed.\n\n"
-                f"Location: {game_folder}"
+                self, i18n.tr("ADB Not Found"),
+                i18n.tr("Assets downloaded locally but could not push to device.\nADB is not installed.\n\nLocation: {location}", location=game_folder)
             )
             return
 
@@ -2318,7 +2380,7 @@ class AssetDBTab(QWidget):
         safe_game_name = "".join(c for c in game_name if c.isalnum() or c in " -_().").strip()
         device_game_path = f"{device_base}/{platform}/{safe_game_name}"
 
-        self.status_label.setText(f"Pushing to device: {safe_game_name}...")
+        self.status_label.setText(i18n.tr("Pushing to device: {game}...", game=safe_game_name))
         self.status_label.setStyleSheet("color: #FFB300;")
 
         signals = self._signals
@@ -2340,7 +2402,10 @@ class AssetDBTab(QWidget):
                 errors = 0
 
                 for i, file_path in enumerate(files):
-                    signals.device_push_progress.emit(i + 1, total, file_path.name)
+                    try:
+                        signals.device_push_progress.emit(i + 1, total, file_path.name)
+                    except RuntimeError:
+                        pass  # Signal source deleted
 
                     try:
                         result = subprocess.run(
@@ -2356,10 +2421,16 @@ class AssetDBTab(QWidget):
                         errors += 1
                         print(f"[DEBUG] Push exception for {file_path.name}: {e}")
 
-                signals.device_push_complete.emit(pushed, errors)
+                try:
+                    signals.device_push_complete.emit(pushed, errors)
+                except RuntimeError:
+                    pass  # Signal source deleted
 
             except Exception as e:
-                signals.device_push_error.emit(str(e))
+                try:
+                    signals.device_push_error.emit(str(e))
+                except RuntimeError:
+                    pass  # Signal source deleted
 
         thread = threading.Thread(target=push_all)
         thread.daemon = True
@@ -2367,46 +2438,41 @@ class AssetDBTab(QWidget):
 
     def _on_device_push_progress(self, current: int, total: int, filename: str):
         """Handle device push progress update."""
-        self.status_label.setText(f"Pushing to device {current}/{total}: {filename}")
+        self.status_label.setText(i18n.tr("Pushing to device {current}/{total}: {filename}", current=current, total=total, filename=filename))
         self.status_label.setStyleSheet("color: #FFB300;")
 
     def _on_device_push_complete(self, pushed: int, errors: int):
         """Handle device push complete."""
         if errors == 0:
-            self.status_label.setText(f"Pushed {pushed} files to device")
+            self.status_label.setText(i18n.tr("Pushed {n} files to device", n=pushed))
             self.status_label.setStyleSheet("color: #4CAF50;")
             QMessageBox.information(
-                self, "Push Complete",
-                f"Successfully pushed {pushed} files to device!\n\n"
-                f"Platform: {self._device_push_platform}\n"
-                f"Game: {self._device_push_game_name}"
+                self, i18n.tr("Push Complete"),
+                i18n.tr("Successfully pushed {n} files to device!\n\nPlatform: {platform}\nGame: {game}", n=pushed, platform=self._device_push_platform, game=self._device_push_game_name)
             )
         else:
-            self.status_label.setText(f"Pushed {pushed} files, {errors} errors")
+            self.status_label.setText(i18n.tr("Pushed {pushed} files, {errors} errors", pushed=pushed, errors=errors))
             self.status_label.setStyleSheet("color: #FFB300;")
             QMessageBox.warning(
-                self, "Push Complete with Errors",
-                f"Pushed {pushed} files to device.\n"
-                f"{errors} files failed to push.\n\n"
-                f"Platform: {self._device_push_platform}\n"
-                f"Game: {self._device_push_game_name}"
+                self, i18n.tr("Push Complete with Errors"),
+                i18n.tr("Pushed {pushed} files to device.\n{errors} files failed to push.\n\nPlatform: {platform}\nGame: {game}", pushed=pushed, errors=errors, platform=self._device_push_platform, game=self._device_push_game_name)
             )
 
     def _on_device_push_error(self, error: str):
         """Handle device push error."""
-        self.status_label.setText(f"Device push failed: {error}")
+        self.status_label.setText(i18n.tr("Device push failed: {error}", error=error))
         self.status_label.setStyleSheet("color: #E53935;")
         QMessageBox.critical(
-            self, "Push Failed",
-            f"Could not push assets to device:\n{error}"
+            self, i18n.tr("Push Failed"),
+            i18n.tr("Could not push assets to device:\n{error}", error=error)
         )
 
     def _on_download_error(self, error: str):
         """Handle download error."""
-        self.status_label.setText(f"Download failed: {error}")
+        self.status_label.setText(i18n.tr("Download failed: {error}", error=error))
         self.status_label.setStyleSheet("color: #E53935;")
 
         QMessageBox.critical(
-            self, "Download Failed",
-            f"Could not download assets:\n{error}"
+            self, i18n.tr("Download Failed"),
+            i18n.tr("Could not download assets:\n{error}", error=error)
         )

@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
 from psd_tools import PSDImage
 from app_paths import get_templates_dir, get_src_dir, get_platform_icons_dir
 from iisu_image_utils import safe_load_image
+import i18n
 
 
 # Global caches to avoid repeated file loading and processing
@@ -459,7 +460,7 @@ class CoverPreview(QLabel):
         # Don't schedule update on init - wait for user to upload artwork
         # Show a placeholder text or error
         if self._psd_available:
-            self.setText("Upload artwork to generate cover preview")
+            self.setText(i18n.tr("Upload artwork to generate cover preview"))
         else:
             self.setText(f"Template Error:\n{self._psd_error}")
         self.setAlignment(Qt.AlignCenter)
@@ -651,26 +652,26 @@ class CoverGeneratorTab(QWidget):
         artwork_card_layout.setContentsMargins(10, 10, 10, 10)
         artwork_card_layout.setSpacing(6)
 
-        artwork_title = QLabel("Game Artwork")
+        artwork_title = QLabel(i18n.tr("Game Artwork"))
         artwork_title.setObjectName("label_card_title")
         artwork_card_layout.addWidget(artwork_title)
 
         art_btn_row = QHBoxLayout()
         art_btn_row.setSpacing(6)
-        upload_artwork_btn = QPushButton("Upload Artwork")
+        upload_artwork_btn = QPushButton(i18n.tr("Upload Artwork"))
         upload_artwork_btn.setObjectName("btn_primary")
         upload_artwork_btn.setMinimumHeight(32)
         upload_artwork_btn.clicked.connect(self._upload_artwork)
         art_btn_row.addWidget(upload_artwork_btn)
 
-        clear_artwork_btn = QPushButton("Clear")
+        clear_artwork_btn = QPushButton(i18n.tr("Clear"))
         clear_artwork_btn.setObjectName("btn_clear")
         clear_artwork_btn.setMinimumHeight(32)
         clear_artwork_btn.clicked.connect(self._clear_artwork)
         art_btn_row.addWidget(clear_artwork_btn)
         artwork_card_layout.addLayout(art_btn_row)
 
-        self.artwork_info = QLabel("No artwork uploaded")
+        self.artwork_info = QLabel(i18n.tr("No artwork uploaded"))
         self.artwork_info.setObjectName("label_muted")
         self.artwork_info.setWordWrap(True)
         artwork_card_layout.addWidget(self.artwork_info)
@@ -684,14 +685,14 @@ class CoverGeneratorTab(QWidget):
         gradient_card_layout.setContentsMargins(10, 10, 10, 10)
         gradient_card_layout.setSpacing(6)
 
-        gradient_title = QLabel("Gradient Overlay")
+        gradient_title = QLabel(i18n.tr("Gradient Overlay"))
         gradient_title.setObjectName("label_card_title")
         gradient_card_layout.addWidget(gradient_title)
 
         # Color 1
         color1_row = QHBoxLayout()
         color1_row.setSpacing(8)
-        c1_lbl = QLabel("Color 1:")
+        c1_lbl = QLabel(i18n.tr("Color 1:"))
         c1_lbl.setObjectName("label_info")
         color1_row.addWidget(c1_lbl)
         self.color1_preview = QLabel()
@@ -701,7 +702,7 @@ class CoverGeneratorTab(QWidget):
         self.color1_preview.setCursor(Qt.PointingHandCursor)
         self.color1_preview.mousePressEvent = lambda e: self._pick_color1()
         color1_row.addWidget(self.color1_preview)
-        self.color1_btn = QPushButton("Choose")
+        self.color1_btn = QPushButton(i18n.tr("Choose"))
         self.color1_btn.setObjectName("btn_small")
         self.color1_btn.setMinimumHeight(24)
         self.color1_btn.clicked.connect(self._pick_color1)
@@ -712,7 +713,7 @@ class CoverGeneratorTab(QWidget):
         # Color 2
         color2_row = QHBoxLayout()
         color2_row.setSpacing(8)
-        c2_lbl = QLabel("Color 2:")
+        c2_lbl = QLabel(i18n.tr("Color 2:"))
         c2_lbl.setObjectName("label_info")
         color2_row.addWidget(c2_lbl)
         self.color2_preview = QLabel()
@@ -722,7 +723,7 @@ class CoverGeneratorTab(QWidget):
         self.color2_preview.setCursor(Qt.PointingHandCursor)
         self.color2_preview.mousePressEvent = lambda e: self._pick_color2()
         color2_row.addWidget(self.color2_preview)
-        self.color2_btn = QPushButton("Choose")
+        self.color2_btn = QPushButton(i18n.tr("Choose"))
         self.color2_btn.setObjectName("btn_small")
         self.color2_btn.setMinimumHeight(24)
         self.color2_btn.clicked.connect(self._pick_color2)
@@ -739,7 +740,7 @@ class CoverGeneratorTab(QWidget):
         icon_card_layout.setContentsMargins(10, 10, 10, 10)
         icon_card_layout.setSpacing(6)
 
-        icon_title = QLabel("Platform Icon")
+        icon_title = QLabel(i18n.tr("Platform Icon"))
         icon_title.setObjectName("label_card_title")
         icon_card_layout.addWidget(icon_title)
 
@@ -750,20 +751,20 @@ class CoverGeneratorTab(QWidget):
 
         icon_btn_row = QHBoxLayout()
         icon_btn_row.setSpacing(6)
-        upload_icon_btn = QPushButton("Custom Icon")
+        upload_icon_btn = QPushButton(i18n.tr("Custom Icon"))
         upload_icon_btn.setObjectName("btn_secondary")
         upload_icon_btn.setMinimumHeight(30)
         upload_icon_btn.clicked.connect(self._upload_icon)
         icon_btn_row.addWidget(upload_icon_btn)
 
-        clear_icon_btn = QPushButton("Clear")
+        clear_icon_btn = QPushButton(i18n.tr("Clear"))
         clear_icon_btn.setObjectName("btn_clear")
         clear_icon_btn.setMinimumHeight(30)
         clear_icon_btn.clicked.connect(self._clear_icon)
         icon_btn_row.addWidget(clear_icon_btn)
         icon_card_layout.addLayout(icon_btn_row)
 
-        self.icon_info = QLabel("No icon uploaded")
+        self.icon_info = QLabel(i18n.tr("No icon uploaded"))
         self.icon_info.setObjectName("label_muted")
         self.icon_info.setWordWrap(True)
         icon_card_layout.addWidget(self.icon_info)
@@ -771,7 +772,7 @@ class CoverGeneratorTab(QWidget):
         # Icon scale
         scale_row = QHBoxLayout()
         scale_row.setSpacing(6)
-        scale_lbl = QLabel("Scale:")
+        scale_lbl = QLabel(i18n.tr("Scale:"))
         scale_lbl.setObjectName("label_info")
         scale_lbl.setMinimumWidth(40)
         scale_row.addWidget(scale_lbl)
@@ -801,13 +802,13 @@ class CoverGeneratorTab(QWidget):
         export_card_layout.setContentsMargins(10, 10, 10, 10)
         export_card_layout.setSpacing(6)
 
-        self.export_btn = QPushButton("Export Cover (1024x1024)")
+        self.export_btn = QPushButton(i18n.tr("Export Cover (1024x1024)"))
         self.export_btn.setObjectName("btn_export")
         self.export_btn.setMinimumHeight(40)
         self.export_btn.clicked.connect(self._export_cover)
         export_card_layout.addWidget(self.export_btn)
 
-        self.export_info = QLabel("Upload artwork to enable export")
+        self.export_info = QLabel(i18n.tr("Upload artwork to enable export"))
         self.export_info.setObjectName("label_muted")
         self.export_info.setAlignment(Qt.AlignCenter)
         export_card_layout.addWidget(self.export_info)
@@ -826,11 +827,11 @@ class CoverGeneratorTab(QWidget):
         right_layout.setSpacing(8)
 
         preview_header = QHBoxLayout()
-        preview_title = QLabel("Preview")
+        preview_title = QLabel(i18n.tr("Preview"))
         preview_title.setObjectName("label_card_title")
         preview_header.addWidget(preview_title)
         preview_header.addStretch()
-        preview_help = QLabel("Drag to pan artwork | Scroll to zoom")
+        preview_help = QLabel(i18n.tr("Drag to pan artwork | Scroll to zoom"))
         preview_help.setObjectName("label_muted")
         preview_header.addWidget(preview_help)
         right_layout.addLayout(preview_header)
@@ -865,7 +866,7 @@ class CoverGeneratorTab(QWidget):
             self.artwork_info.setText(f"Loaded: {Path(file_path).name}\nSize: {width}x{height}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load artwork:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to load artwork:\n{error}", error=e))
 
     def _upload_icon(self):
         file_path, _ = QFileDialog.getOpenFileName(
@@ -891,25 +892,25 @@ class CoverGeneratorTab(QWidget):
     def _clear_artwork(self):
         """Clear the uploaded artwork."""
         self.preview.artwork_image = None
-        self.preview.setText("Upload artwork to generate cover preview")
+        self.preview.setText(i18n.tr("Upload artwork to generate cover preview"))
         self.preview.setAlignment(Qt.AlignCenter)
-        self.artwork_info.setText("No artwork uploaded")
-        self.export_info.setText("Upload artwork to enable export")
+        self.artwork_info.setText(i18n.tr("No artwork uploaded"))
+        self.export_info.setText(i18n.tr("Upload artwork to enable export"))
 
     def _clear_icon(self):
         """Clear the uploaded icon."""
         self.preview.icon_image = None
         self.preview.schedule_update()
-        self.icon_info.setText("No icon uploaded")
+        self.icon_info.setText(i18n.tr("No icon uploaded"))
 
     def _pick_color1(self):
-        color = QColorDialog.getColor(self.preview.gradient_color1, self, "Select Gradient Color 1")
+        color = QColorDialog.getColor(self.preview.gradient_color1, self, i18n.tr("Select Gradient Color 1"))
         if color.isValid():
             self.preview.set_gradient_color1(color)
             self.color1_preview.setStyleSheet(f"background: {color.name()};")
 
     def _pick_color2(self):
-        color = QColorDialog.getColor(self.preview.gradient_color2, self, "Select Gradient Color 2")
+        color = QColorDialog.getColor(self.preview.gradient_color2, self, i18n.tr("Select Gradient Color 2"))
         if color.isValid():
             self.preview.set_gradient_color2(color)
             self.color2_preview.setStyleSheet(f"background: {color.name()};")
@@ -965,7 +966,7 @@ class CoverGeneratorTab(QWidget):
         """Setup platform preset dropdown with colors from existing platform icons."""
         # Platform presets: (display_name, icon_filename, color1, color2)
         self.platform_presets = [
-            ("Select Platform...", None, None, None),
+            (i18n.tr("Select Platform..."), None, None, None),
             ("Android", "Android.png", "#69e6a4", "#c8fff8"),
             ("Arcade", "Arcade.png", "#ff9f00", "#ff0000"),
             ("Dreamcast", "Dreamcast.png", "#f89837", "#ff7d46"),
@@ -1014,9 +1015,9 @@ class CoverGeneratorTab(QWidget):
                 try:
                     icon = safe_load_image(icon_path, "RGBA")
                     self.preview.set_icon(icon)
-                    self.icon_info.setText(f"Loaded: {icon_filename}")
+                    self.icon_info.setText(i18n.tr("Loaded: {name}", name=icon_filename))
                 except Exception as e:
-                    QMessageBox.warning(self, "Error", f"Failed to load icon: {e}")
+                    QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Failed to load icon: {error}", error=e))
 
         # Apply gradient colors
         if color1 and color2:

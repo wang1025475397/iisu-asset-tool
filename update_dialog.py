@@ -18,6 +18,7 @@ from updater import (
     format_size, check_for_updates,
 )
 from app_paths import get_app_dir, get_config_path
+import i18n
 
 
 class _DownloadSignals(QObject):
@@ -42,7 +43,7 @@ class UpdateDialog(QDialog):
         self._setup_ui()
 
     def _setup_ui(self):
-        self.setWindowTitle("Update Available")
+        self.setWindowTitle(i18n.tr("Update Available"))
         self.setMinimumWidth(520)
         self.setMinimumHeight(400)
 
@@ -60,22 +61,22 @@ class UpdateDialog(QDialog):
         # --- Version header ---
         version_label = QLabel(
             f"<b style='font-size: 16px; color: #00D4FF;'>v{self.update_info.latest_version}</b>"
-            f"  <span style='color: #888;'>is available</span>"
+            f"  <span style='color: #888;'>{i18n.tr('is available')}</span>"
         )
         layout.addWidget(version_label)
 
         current_label = QLabel(
-            f"<span style='color: #888;'>You have v{self.update_info.current_version}</span>"
+            f"<span style='color: #888;'>{i18n.tr('You have')} v{self.update_info.current_version}</span>"
         )
         layout.addWidget(current_label)
 
         # --- Changelog ---
-        changelog_header = QLabel("<b>What's New:</b>")
+        changelog_header = QLabel(f"<b>{i18n.tr('What\'s New:')}</b>")
         layout.addWidget(changelog_header)
 
         self._changelog = QTextBrowser()
         self._changelog.setOpenExternalLinks(True)
-        changelog_text = self.update_info.changelog or "No changelog provided."
+        changelog_text = self.update_info.changelog or i18n.tr("No changelog provided.")
         # Convert markdown-style bullet points to HTML
         html_lines = []
         for line in changelog_text.split("\n"):
@@ -96,7 +97,7 @@ class UpdateDialog(QDialog):
         # --- Download size ---
         if self.update_info.download_size > 0:
             size_label = QLabel(
-                f"<span style='color: #888;'>Download size: "
+                f"<span style='color: #888;'>{i18n.tr('Download size:')} "
                 f"{format_size(self.update_info.download_size)}</span>"
             )
             layout.addWidget(size_label)
@@ -118,26 +119,26 @@ class UpdateDialog(QDialog):
         button_row = QHBoxLayout()
         button_row.setSpacing(8)
 
-        self._btn_github = QPushButton("View on GitHub")
+        self._btn_github = QPushButton(i18n.tr("View on GitHub"))
         self._btn_github.setMinimumHeight(36)
         self._btn_github.clicked.connect(self._open_github)
         button_row.addWidget(self._btn_github)
 
         button_row.addStretch()
 
-        self._btn_later = QPushButton("Later")
+        self._btn_later = QPushButton(i18n.tr("Later"))
         self._btn_later.setMinimumHeight(36)
         self._btn_later.clicked.connect(self.reject)
         button_row.addWidget(self._btn_later)
 
-        self._btn_update = QPushButton("Update Now")
+        self._btn_update = QPushButton(i18n.tr("Update Now"))
         self._btn_update.setMinimumHeight(36)
         self._btn_update.setObjectName("btn_accent")
         self._btn_update.clicked.connect(self._start_download)
         button_row.addWidget(self._btn_update)
 
         # Restart button (hidden initially)
-        self._btn_restart = QPushButton("Restart Now")
+        self._btn_restart = QPushButton(i18n.tr("Restart Now"))
         self._btn_restart.setMinimumHeight(36)
         self._btn_restart.setObjectName("btn_accent")
         self._btn_restart.clicked.connect(self._restart_app)
@@ -157,16 +158,15 @@ class UpdateDialog(QDialog):
         if not self.update_info.download_url:
             # No downloadable asset for this platform — open GitHub instead
             QMessageBox.information(
-                self, "No Direct Download",
-                f"No downloadable update found for {sys.platform}.\n"
-                "Opening the release page instead."
+                self, i18n.tr("No Direct Download"),
+                i18n.tr("No downloadable update found for {platform}.\nOpening the release page instead.", platform=sys.platform)
             )
             self._open_github()
             return
 
         self._downloading = True
         self._btn_update.setEnabled(False)
-        self._btn_update.setText("Downloading...")
+        self._btn_update.setText(i18n.tr("Downloading..."))
         self._btn_later.setEnabled(False)
         self._progress_bar.setVisible(True)
         self._progress_label.setVisible(True)
@@ -202,44 +202,43 @@ class UpdateDialog(QDialog):
     def _on_complete(self, path: str):
         self._download_path = Path(path)
         self._progress_bar.setValue(100)
-        self._progress_label.setText("Download complete!")
+        self._progress_label.setText(i18n.tr("Download complete!"))
         self._btn_update.setVisible(False)
 
         if sys.platform == "darwin":
             # macOS: open the DMG
-            self._progress_label.setText("Opening DMG...")
+            self._progress_label.setText(i18n.tr("Opening DMG..."))
             apply_update(self._download_path, get_app_dir())
-            self._btn_later.setText("Close")
+            self._btn_later.setText(i18n.tr("Close"))
             self._btn_later.setEnabled(True)
         else:
             # Windows / Linux: prepare swap
             app_dir = get_app_dir()
             success = apply_update(self._download_path, app_dir)
             if success:
-                self._progress_label.setText("Ready to install. Restart to apply the update.")
+                self._progress_label.setText(i18n.tr("Ready to install. Restart to apply the update."))
                 self._btn_restart.setVisible(True)
-                self._btn_later.setText("Later")
+                self._btn_later.setText(i18n.tr("Later"))
                 self._btn_later.setEnabled(True)
             else:
-                self._progress_label.setText("Failed to prepare update. Please download manually.")
-                self._btn_later.setText("Close")
+                self._progress_label.setText(i18n.tr("Failed to prepare update. Please download manually."))
+                self._btn_later.setText(i18n.tr("Close"))
                 self._btn_later.setEnabled(True)
                 self._btn_github.setVisible(True)
 
     def _on_error(self, message: str):
         self._downloading = False
         self._progress_bar.setVisible(False)
-        self._progress_label.setText(f"Error: {message}")
+        self._progress_label.setText(f"{i18n.tr('Error')}: {message}")
         self._progress_label.setVisible(True)
         self._btn_update.setEnabled(True)
-        self._btn_update.setText("Retry")
+        self._btn_update.setText(i18n.tr("Retry"))
         self._btn_later.setEnabled(True)
 
     def _restart_app(self):
         reply = QMessageBox.question(
-            self, "Restart",
-            "The app will close and restart with the new version.\n"
-            "Any unsaved work will be lost. Continue?",
+            self, i18n.tr("Restart"),
+            i18n.tr("The app will close and restart with the new version.\nAny unsaved work will be lost. Continue?"),
             QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes,
         )
         if reply == QMessageBox.Yes:
@@ -251,7 +250,7 @@ class UpToDateDialog(QDialog):
 
     def __init__(self, current_version: str, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Up to Date")
+        self.setWindowTitle(i18n.tr("Up to Date"))
         self.setMinimumWidth(350)
 
         layout = QVBoxLayout(self)
@@ -264,8 +263,8 @@ class UpToDateDialog(QDialog):
         layout.addWidget(icon_label)
 
         msg = QLabel(
-            f"<b>You're up to date!</b><br><br>"
-            f"iiSU Asset Tool v{current_version} is the latest version."
+            f"<b>{i18n.tr('You\'re up to date!')}</b><br><br>"
+            f"iiSU Asset Tool v{current_version} {i18n.tr('is the latest version.')}"
         )
         msg.setAlignment(Qt.AlignCenter)
         msg.setWordWrap(True)
@@ -284,15 +283,15 @@ def show_update_check(current_version: str, parent=None, silent: bool = True):
     """
     info = check_for_updates(current_version)
 
-    if info and info.is_update_available:
-        dialog = UpdateDialog(info, parent=parent)
-        dialog.exec()
-    elif not silent:
-        if info:
-            dialog = UpToDateDialog(current_version, parent=parent)
+        if info and info.is_update_available:
+            dialog = UpdateDialog(info, parent=parent)
             dialog.exec()
-        else:
-            QMessageBox.warning(
-                parent, "Update Check Failed",
-                "Could not check for updates.\nPlease check your internet connection."
-            )
+        elif not silent:
+            if info:
+                dialog = UpToDateDialog(current_version, parent=parent)
+                dialog.exec()
+            else:
+                QMessageBox.warning(
+                    parent, i18n.tr("Update Check Failed"),
+                    i18n.tr("Could not check for updates.\nPlease check your internet connection.")
+                )
