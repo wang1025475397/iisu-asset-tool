@@ -14,9 +14,9 @@ psd_tools_datas = collect_data_files('psd_tools')
 locales_datas = [('locales/*.json', 'locales')]  # Include language files
 # Add other required resource files
 resource_datas = [
-    ('config.yaml', '.'),  # Include default config
-    ('iisu_theme.qss', '.'),  # Dark theme
-    ('iisu_theme_light.qss', '.'),  # Light theme
+    ('config.yaml', '.'),
+    ('iisu_theme.qss', '.'),
+    ('iisu_theme_light.qss', '.'),
 ]
 
 # Minimal build - assets are distributed alongside the exe by GitHub Actions
@@ -39,10 +39,9 @@ a = Analysis(
         'imagehash',
         'bs4',
         'tqdm',
-        'aggdraw',  # Required by psd_tools for vector shape rendering
-        'device_asset_dialog',
-        'source_priority_widget',
-    ] + psd_tools_imports,  # Add all psd_tools submodules
+        'aggdraw',
+        'device_asset_dialog'
+    ] + psd_tools_imports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
