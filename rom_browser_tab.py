@@ -1549,10 +1549,10 @@ if ($device) {{
         if not path_str:
             QMessageBox.warning(
                 self,
-                "No Folder Selected",
-                "Please click Browse to select your ROM folder.\n\n"
-                "Your ROM folder can be on a USB drive, external storage,\n"
-                "or any connected device."
+                i18n.tr("No Folder Selected"),
+                i18n.tr("Please click Browse to select your ROM folder.\n\n")
+                + i18n.tr("Your ROM folder can be on a USB drive, external storage,\n")
+                + i18n.tr("or any connected device.")
             )
             return
 
@@ -2465,14 +2465,14 @@ if ($device) {{
 
         if missing_count == 0:
             QMessageBox.information(
-                self, "All Icons Present",
-                f"All games in {platform_key} already have icons generated."
+                self, i18n.tr("All Icons Present"),
+                i18n.tr("All games in {platform} already have icons generated.", platform=platform_key)
             )
             return
 
         QMessageBox.information(
-            self, "Missing Icons Selected",
-            f"Selected {missing_count} games without icons.\n\nClick 'Generate Icons' to create them."
+            self, i18n.tr("Missing Icons Selected"),
+            i18n.tr("Selected {n} games without icons.\n\nClick 'Generate Icons' to create them.", n=missing_count)
         )
 
     def _open_platform_output(self, platform_key: str):
@@ -2497,10 +2497,10 @@ if ($device) {{
         """Delete all generated assets for a platform."""
         reply = QMessageBox.question(
             self,
-            "Delete Platform Assets",
-            f"Delete ALL generated assets for {platform_key}?\n\n"
-            f"This will remove all icons, heroes, and other generated files.\n"
-            f"This cannot be undone.",
+            i18n.tr("Delete Platform Assets"),
+            i18n.tr("Delete ALL generated assets for {platform}?\n\n", platform=platform_key)
+            + i18n.tr("This will remove all icons, heroes, and other generated files.\n")
+            + i18n.tr("This cannot be undone."),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -2774,9 +2774,9 @@ if ($device) {{
 
         if total_local == 0 and total_device == 0:
             QMessageBox.information(
-                self, "No Assets",
-                f"No assets found for '{title}'.\n\n"
-                f"Generate icons first or check device connection."
+                self, i18n.tr("No Assets"),
+                i18n.tr("No assets found for '{title}'.\n\n", title=title)
+                + i18n.tr("Generate icons first or check device connection.")
             )
             return
 
@@ -4091,20 +4091,20 @@ if ($device) {{
             if success:
                 QMessageBox.information(
                     self,
-                    "ADB Installed",
-                    f"ADB has been installed successfully!\n\n{message}\n\n"
-                    "Next steps:\n"
-                    "1. Enable USB Debugging on your Android device\n"
-                    "   (Settings > Developer Options > USB Debugging)\n"
-                    "2. Connect your device via USB\n"
-                    "3. Authorize the USB debugging prompt on your device"
+                    i18n.tr("ADB Installed"),
+                    i18n.tr("ADB has been installed successfully!\n\n{message}\n\n", message=message)
+                    + i18n.tr("Next steps:\n")
+                    + i18n.tr("1. Enable USB Debugging on your Android device\n")
+                    + i18n.tr("   (Settings > Developer Options > USB Debugging)\n")
+                    + i18n.tr("2. Connect your device via USB\n")
+                    + i18n.tr("3. Authorize the USB debugging prompt on your device")
                 )
             else:
                 QMessageBox.warning(
                     self,
-                    "Installation Failed",
-                    f"Failed to install ADB:\n\n{message}\n\n"
-                    "You can try manual installation instead."
+                    i18n.tr("Installation Failed"),
+                    i18n.tr("Failed to install ADB:\n\n{message}\n\n", message=message)
+                    + i18n.tr("You can try manual installation instead.")
                 )
 
         except Exception as e:

@@ -2282,11 +2282,12 @@ class AssetDBTab(QWidget):
         # Check for existing files
         existing = [fn for _, fn, _ in download_list if (game_folder / fn).exists()]
         if existing:
+            existing_list = ', '.join(existing[:5])
+            if len(existing) > 5:
+                existing_list += "\n" + i18n.tr("...and {n} more", n=len(existing) - 5)
             reply = QMessageBox.question(
-                self, "Overwrite Assets?",
-                f"This folder already has some assets:\n{', '.join(existing[:5])}"
-                + (f"\n...and {len(existing) - 5} more" if len(existing) > 5 else "")
-                + "\n\nOverwrite existing files?",
+                self, i18n.tr("Overwrite Assets?"),
+                i18n.tr("This folder already has some assets:\n{files}\n\nOverwrite existing files?", files=existing_list),
                 QMessageBox.Yes | QMessageBox.No,
                 QMessageBox.No
             )

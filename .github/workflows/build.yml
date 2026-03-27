@@ -213,6 +213,13 @@ jobs:
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
 
+    - name: Decode Keystore
+      if: env.KEYSTORE_BASE64 != ''
+      env:
+        KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+      run: |
+        echo "$KEYSTORE_BASE64" | base64 -d > android/iisu-asset-tool.keystore
+
     - name: Fix Gradle properties for CI
       working-directory: android
       run: |
@@ -221,9 +228,19 @@ jobs:
 
     - name: Build Android APK
       working-directory: android
+      env:
+        KEYSTORE_PATH: ${{ secrets.KEYSTORE_BASE64 != '' && '../iisu-asset-tool.keystore' || '' }}
+        KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+        KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
       run: |
         chmod +x gradlew
-        ./gradlew assembleRelease || ./gradlew assembleDebug
+        if [ -n "$KEYSTORE_PATH" ]; then
+          ./gradlew assembleRelease
+        else
+          echo "No signing config, building debug APK"
+          ./gradlew assembleDebug
+        fi
 
     - name: Rename APK
       run: |

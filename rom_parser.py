@@ -1504,17 +1504,21 @@ def get_available_drives() -> List[Tuple[str, str]]:
                     pass
 
                 # Check if drive is accessible
-                if Path(drive_path).exists():
-                    type_name = drive_type_names.get(drive_type, "")
-                    if label and type_name:
-                        display = f"{letter}: {label} [{type_name}]"
-                    elif label:
-                        display = f"{letter}: {label}"
-                    elif type_name:
-                        display = f"{letter}: [{type_name}]"
-                    else:
-                        display = f"{letter}:"
-                    drives.append((drive_path, display))
+                try:
+                    if Path(drive_path).exists():
+                        type_name = drive_type_names.get(drive_type, "")
+                        if label and type_name:
+                            display = f"{letter}: {label} [{type_name}]"
+                        elif label:
+                            display = f"{letter}: {label}"
+                        elif type_name:
+                            display = f"{letter}: [{type_name}]"
+                        else:
+                            display = f"{letter}:"
+                        drives.append((drive_path, display))
+                except OSError:
+                    # Drive not accessible (e.g., disconnected network drive)
+                    pass
 
             bitmask >>= 1
 

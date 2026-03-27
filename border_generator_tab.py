@@ -796,7 +796,7 @@ class BorderGeneratorTab(QWidget):
                     self.preview.set_icon(icon)
                     self.icon_path_label.setText(icon_filename)
                 except Exception as e:
-                    QMessageBox.warning(self, "Error", f"Failed to load icon: {e}")
+                    QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Failed to load icon: {error}", error=e))
 
         # Apply gradient colors
         if color1 and color2:

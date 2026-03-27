@@ -23,6 +23,7 @@ from PySide6.QtWidgets import (
 from app_paths import get_config_path, get_borders_dir, get_platform_icons_dir
 from rom_parser import FOLDER_TO_PLATFORM, IISU_PLATFORM_FOLDERS
 import run_backend
+import i18n
 
 
 class ClickableIconPreview(QFrame):
@@ -449,13 +450,17 @@ class ExistingAssetsTab(QWidget):
 
         icons = []
 
+        # Prepare subprocess kwargs for Windows
+        run_kwargs = {'capture_output': True, 'text': True}
+        if sys.platform == 'win32':
+            run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
+
         try:
             # Check if ADB is available
+            run_kwargs['timeout'] = 5
             result = subprocess.run(
                 ["adb", "devices"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                **run_kwargs
             )
             if result.returncode != 0:
                 return icons
@@ -466,11 +471,10 @@ class ExistingAssetsTab(QWidget):
                 return icons
 
             # List app folders in the android apps directory
+            run_kwargs['timeout'] = 10
             list_result = subprocess.run(
                 ["adb", "shell", f"ls -1 '{self.android_apps_path}' 2>/dev/null"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                **run_kwargs
             )
             if list_result.returncode != 0:
                 return icons
@@ -485,22 +489,20 @@ class ExistingAssetsTab(QWidget):
                     continue
 
                 # Check for icon file
+                run_kwargs['timeout'] = 5
                 for ext in ['png', 'jpg', 'jpeg']:
                     icon_remote_path = f"{self.android_apps_path}/{app_folder}/icon.{ext}"
                     check_result = subprocess.run(
                         ["adb", "shell", f"test -f '{icon_remote_path}' && echo exists"],
-                        capture_output=True,
-                        text=True,
-                        timeout=5
+                        **run_kwargs
                     )
                     if 'exists' in check_result.stdout:
                         # Pull icon to temp directory
                         local_icon_path = temp_dir / f"{app_folder}_icon.{ext}"
+                        run_kwargs['timeout'] = 10
                         pull_result = subprocess.run(
                             ["adb", "pull", icon_remote_path, str(local_icon_path)],
-                            capture_output=True,
-                            text=True,
-                            timeout=10
+                            **run_kwargs
                         )
                         if pull_result.returncode == 0 and local_icon_path.exists():
                             # Convert package name to display name
@@ -612,9 +614,9 @@ class ExistingAssetsTab(QWidget):
 
         reply = QMessageBox.question(
             self,
-            "Re-scrape Icons",
-            f"Re-scrape {len(selected)} selected icon(s)?\n\n"
-            "This will open interactive artwork selection for each game.",
+            i18n.tr("Re-scrape Icons"),
+            i18n.tr("Re-scrape {n} selected icon(s)?\n\n", n=len(selected))
+            + i18n.tr("This will open interactive artwork selection for each game."),
             QMessageBox.Yes | QMessageBox.No
         )
 
@@ -637,16 +639,16 @@ class ExistingAssetsTab(QWidget):
                 folders_to_delete.append((icon_widget, game_folder))
 
         if not folders_to_delete:
-            QMessageBox.information(self, "Nothing to Delete", "No asset folders found for selected items.")
+            QMessageBox.information(self, i18n.tr("Nothing to Delete"), i18n.tr("No asset folders found for selected items."))
             return
 
         # Show confirmation dialog with details
         reply = QMessageBox.warning(
             self,
-            "Delete Assets",
-            f"This will permanently delete {len(folders_to_delete)} game folder(s) and all their assets.\n\n"
-            "This action cannot be undone.\n\n"
-            "Are you sure you want to continue?",
+            i18n.tr("Delete Assets"),
+            i18n.tr("This will permanently delete {n} game folder(s) and all their assets.\n\n", n=len(folders_to_delete))
+            + i18n.tr("This action cannot be undone.\n\n")
+            + i18n.tr("Are you sure you want to continue?"),
             QMessageBox.Yes | QMessageBox.No,
             QMessageBox.No
         )
@@ -670,8 +672,8 @@ class ExistingAssetsTab(QWidget):
         if error_count > 0:
             QMessageBox.warning(
                 self,
-                "Delete Complete",
-                f"Deleted {deleted_count} folder(s).\n{error_count} folder(s) could not be deleted."
+                i18n.tr("Delete Complete"),
+                i18n.tr("Deleted {n} folder(s).\n{errors} folder(s) could not be deleted.", n=deleted_count, errors=error_count)
             )
         else:
             self.status_label.setText(f"Deleted {deleted_count} folder(s)")
@@ -705,9 +707,9 @@ class ExistingAssetsTab(QWidget):
         if not adb_path:
             QMessageBox.warning(
                 self,
-                "ADB Not Found",
-                "ADB (Android Debug Bridge) is not installed or not in PATH.\n\n"
-                "Please install Android SDK Platform Tools to use this feature."
+                i18n.tr("ADB Not Found"),
+                i18n.tr("ADB (Android Debug Bridge) is not installed or not in PATH.\n\n")
+                + i18n.tr("Please install Android SDK Platform Tools to use this feature.")
             )
             return
 
@@ -724,13 +726,13 @@ class ExistingAssetsTab(QWidget):
             if not devices:
                 QMessageBox.warning(
                     self,
-                    "No Device Connected",
-                    "No Android device is connected.\n\n"
-                    "Please connect your device with USB debugging enabled."
+                    i18n.tr("No Device Connected"),
+                    i18n.tr("No Android device is connected.\n\n")
+                    + i18n.tr("Please connect your device with USB debugging enabled.")
                 )
                 return
         except Exception as e:
-            QMessageBox.warning(self, "ADB Error", f"Failed to check devices: {e}")
+            QMessageBox.warning(self, i18n.tr("ADB Error"), i18n.tr("Failed to check devices: {error}", error=e))
             return
 
         # Load device path from config
@@ -767,16 +769,16 @@ class ExistingAssetsTab(QWidget):
                         ))
 
         if not files_to_push:
-            QMessageBox.information(self, "Nothing to Push", "No files found to push.")
+            QMessageBox.information(self, i18n.tr("Nothing to Push"), i18n.tr("No files found to push."))
             return
 
         # Confirm with user
         reply = QMessageBox.question(
             self,
-            "Push to Device",
-            f"Push {len(files_to_push)} files from {len(selected)} game(s) to device?\n\n"
-            f"Target: {device_base_path}\n\n"
-            "Note: This will overwrite existing files on the device.",
+            i18n.tr("Push to Device"),
+            i18n.tr("Push {n} files from {games} game(s) to device?\n\n", n=len(files_to_push), games=len(selected))
+            + i18n.tr("Target: {path}\n\n", path=device_base_path)
+            + i18n.tr("Note: This will overwrite existing files on the device."),
             QMessageBox.Yes | QMessageBox.No
         )
 
@@ -825,14 +827,14 @@ class ExistingAssetsTab(QWidget):
         if errors > 0:
             QMessageBox.warning(
                 self,
-                "Push Complete",
-                f"Pushed {pushed} files to device.\n{errors} files failed to push."
+                i18n.tr("Push Complete"),
+                i18n.tr("Pushed {n} files to device.\n{errors} files failed to push.", n=pushed, errors=errors)
             )
         else:
             QMessageBox.information(
                 self,
-                "Push Complete",
-                f"Successfully pushed {pushed} files to device."
+                i18n.tr("Push Complete"),
+                i18n.tr("Successfully pushed {n} files to device.", n=pushed)
             )
             self.status_label.setText(f"Pushed {pushed} files to device")
 
@@ -847,7 +849,7 @@ class ExistingAssetsTab(QWidget):
 
         cfg_path = Path(self.config_path)
         if not cfg_path.exists():
-            QMessageBox.warning(self, "Config Missing", "Configuration file not found.")
+            QMessageBox.warning(self, i18n.tr("Config Missing"), i18n.tr("Configuration file not found."))
             return
 
         # Group by platform
@@ -1025,4 +1027,4 @@ class ExistingAssetsTab(QWidget):
         if self.output_dir.exists():
             QDesktopServices.openUrl(QUrl.fromLocalFile(str(self.output_dir.absolute())))
         else:
-            QMessageBox.warning(self, "Error", "Output directory not found.")
+            QMessageBox.warning(self, i18n.tr("Error"), i18n.tr("Output directory not found."))

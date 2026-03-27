@@ -859,8 +859,8 @@ class MainWindowWithTabs(QMainWindow):
         """Show error message when update check fails."""
         from PySide6.QtWidgets import QMessageBox
         QMessageBox.warning(
-            self, "Update Check Failed",
-            "Could not check for updates.\nPlease check your internet connection."
+            self, i18n.tr("Update Check Failed"),
+            i18n.tr("Could not check for updates. Please check your internet connection.")
         )
 
     def _manual_update_check(self, parent_dialog=None):

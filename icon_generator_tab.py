@@ -649,10 +649,10 @@ class IconGeneratorTab(QWidget):
         if state == Qt.Unchecked:
             QMessageBox.warning(
                 self,
-                "Interactive Mode Disabled",
-                "Warning: With Interactive Mode disabled, artwork will be automatically selected "
-                "without prompting you for each game.\n\n"
-                "The first matching result from your enabled sources will be used."
+                i18n.tr("Interactive Mode Disabled"),
+                i18n.tr("Warning: With Interactive Mode disabled, artwork will be automatically selected ")
+                + i18n.tr("without prompting you for each game.\n\n")
+                + i18n.tr("The first matching result from your enabled sources will be used.")
             )
 
     def _on_square_only_changed(self, state):
@@ -1214,7 +1214,7 @@ class IconGeneratorTab(QWidget):
 
         cfg_path = Path(self.config_path)
         if not cfg_path.exists():
-            QMessageBox.warning(self, "Config Error", "Config file not found.")
+            QMessageBox.warning(self, i18n.tr("Config Error"), i18n.tr("Config file not found."))
             return
 
         try:
@@ -1247,11 +1247,11 @@ class IconGeneratorTab(QWidget):
             invalidate_config_cache()
 
             self.append_log("[CONFIG] Source priority saved to config.yaml")
-            QMessageBox.information(self, "Success", "Source priority saved to config.yaml")
+            QMessageBox.information(self, i18n.tr("Success"), i18n.tr("Source priority saved to config.yaml"))
 
         except Exception as e:
             self.append_log(f"Failed to save source priority: {e}")
-            QMessageBox.critical(self, "Error", f"Failed to save config: {e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to save config: {error}", error=e))
 
     def _on_source_order_changed(self, sources):
         """Handle source order changes (for future auto-save or validation)."""
@@ -1290,14 +1290,14 @@ class IconGeneratorTab(QWidget):
     def start_job(self):
         cfg_path = Path(self.config_path).expanduser()
         if not cfg_path.exists():
-            QMessageBox.warning(self, "Config missing", "Please choose a valid config.yaml")
+            QMessageBox.warning(self, i18n.tr("Config Missing"), i18n.tr("Configuration file not found."))
             return
 
         # Get selected platforms from all tabs (using selection instead of checkState)
         platforms = self._get_selected_platforms()
 
         if not platforms:
-            QMessageBox.information(self, "No platforms selected", "Select at least one platform.")
+            QMessageBox.information(self, i18n.tr("No platforms selected"), i18n.tr("Select at least one platform."))
             return
 
         # Check API keys and warn user about missing ones
@@ -1473,12 +1473,12 @@ class IconGeneratorTab(QWidget):
             missing_list = ", ".join(missing_keys)
             QMessageBox.warning(
                 self,
-                "API Keys Not Configured",
-                f"The following API sources are not configured:\n\n"
-                f"• {chr(10).join(missing_keys)}\n\n"
-                f"Results may be limited. Configure API keys in Settings (gear icon) "
-                f"to access more artwork sources.\n\n"
-                f"TheGamesDB and Libretro will still work without configuration."
+                i18n.tr("API Keys Not Configured"),
+                i18n.tr("The following API sources are not configured:\n\n")
+                + "• " + "\n• ".join(missing_keys) + "\n\n"
+                + i18n.tr("Results may be limited. Configure API keys in Settings (gear icon) ")
+                + i18n.tr("to access more artwork sources.\n\n")
+                + i18n.tr("TheGamesDB and Libretro will still work without configuration.")
             )
 
     def open_preview(self):
@@ -1568,20 +1568,24 @@ class IconGeneratorTab(QWidget):
                     continue
 
                 # Create game folder on device if needed
+                run_kwargs = {'capture_output': True, 'text': True, 'timeout': 10}
+                if sys.platform == 'win32':
+                    run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
                 try:
                     subprocess.run(
                         [adb_path, "-s", device_id, "shell", f'mkdir -p "{device_game_path}"'],
-                        capture_output=True, text=True, timeout=10
+                        **run_kwargs
                     )
                 except Exception:
                     pass
 
                 # Push each asset file
+                run_kwargs['timeout'] = 30
                 for asset_file in asset_files:
                     try:
                         result = subprocess.run(
                             [adb_path, "-s", device_id, "push", str(asset_file), f"{device_game_path}/{asset_file.name}"],
-                            capture_output=True, text=True, timeout=30
+                            **run_kwargs
                         )
                         if result.returncode == 0:
                             pushed += 1

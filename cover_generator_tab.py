@@ -887,7 +887,7 @@ class CoverGeneratorTab(QWidget):
             self.icon_info.setText(f"Loaded: {Path(file_path).name}\nSize: {width}x{height}")
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to load icon:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to load icon:\n{error}", error=e))
 
     def _clear_artwork(self):
         """Clear the uploaded artwork."""
@@ -941,12 +941,12 @@ class CoverGeneratorTab(QWidget):
 
             QMessageBox.information(
                 self,
-                "Success",
-                f"Cover exported successfully to:\n{file_path}"
+                i18n.tr("Success"),
+                i18n.tr("Cover exported successfully to:\n{path}", path=file_path)
             )
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to export cover:\n{e}")
+            QMessageBox.critical(self, i18n.tr("Error"), i18n.tr("Failed to export cover:\n{error}", error=e))
 
     def _update_icon_scale(self, value: int):
         """Update icon scale from slider."""
