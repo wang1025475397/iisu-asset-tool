@@ -10,6 +10,10 @@ psd_tools_imports = collect_submodules('psd_tools')
 # Collect psd_tools data files (if any)
 psd_tools_datas = collect_data_files('psd_tools')
 
+# Fix numpy 2.x compatibility with PyInstaller
+numpy_datas = collect_data_files('numpy', include_py_files=False)
+numpy_imports = collect_submodules('numpy')
+
 # Collect additional data files
 locales_datas = [('locales/*.json', 'locales')]  # Include language files
 # Add other required resource files
@@ -24,7 +28,7 @@ a = Analysis(
     ['run_gui.py'],
     pathex=[],
     binaries=[],
-    datas=psd_tools_datas + locales_datas + resource_datas,  # Include psd_tools, locales and resource files
+    datas=psd_tools_datas + locales_datas + resource_datas + numpy_datas,  # Include psd_tools, locales, resources and numpy files
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtGui',
@@ -35,16 +39,19 @@ a = Analysis(
         'yaml',
         'requests',
         'numpy',
+        'numpy._core',
+        'numpy._core._multiarray_umath',
+        'numpy._core.multiarray',
         'cv2',
         'imagehash',
         'bs4',
         'tqdm',
         'aggdraw',
         'device_asset_dialog'
-    ] + psd_tools_imports,
+    ] + psd_tools_imports + numpy_imports,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['hook_numpy_fix.py'],
     excludes=[
         'tkinter',
         '_tkinter',

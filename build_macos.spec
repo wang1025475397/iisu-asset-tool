@@ -10,6 +10,10 @@ psd_tools_imports = collect_submodules('psd_tools')
 # Collect psd_tools data files (if any)
 psd_tools_datas = collect_data_files('psd_tools')
 
+# Fix numpy 2.x compatibility with PyInstaller
+numpy_datas = collect_data_files('numpy', include_py_files=False)
+numpy_imports = collect_submodules('numpy')
+
 # Build datas list, skipping missing paths and excluding OST mp3s from src/
 _datas = []
 for src, dst in [
@@ -38,7 +42,7 @@ a = Analysis(
     ['run_gui.py'],
     pathex=[],
     binaries=[],
-    datas=_datas + psd_tools_datas,
+    datas=_datas + psd_tools_datas + numpy_datas,
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtGui',
@@ -49,15 +53,18 @@ a = Analysis(
         'yaml',
         'requests',
         'numpy',
+        'numpy._core',
+        'numpy._core._multiarray_umath',
+        'numpy._core.multiarray',
         'cv2',
         'imagehash',
         'bs4',
         'tqdm',
         'aggdraw'  # Required by psd_tools for vector shape rendering
-    ] + psd_tools_imports,  # Add all psd_tools submodules
+    ] + psd_tools_imports + numpy_imports,  # Add all psd_tools and numpy submodules
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=['hook_numpy_fix.py'],
     excludes=[
         'tkinter',
         '_tkinter',
