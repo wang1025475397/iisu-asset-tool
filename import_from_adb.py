@@ -159,7 +159,14 @@ def hash_exists(conn, file_hash):
 def main():
     # Check ADB
     try:
-        result = subprocess.run(['adb', 'devices'], capture_output=True, text=True, timeout=10)
+        result = subprocess.run(
+            ['adb', 'devices'], 
+            capture_output=True, 
+            text=True, 
+            timeout=10,
+            encoding='utf-8',
+            errors='replace'
+        )
         devices = [l for l in result.stdout.strip().split('\n')[1:] if 'device' in l and 'offline' not in l]
         if not devices:
             print("No ADB devices connected.")

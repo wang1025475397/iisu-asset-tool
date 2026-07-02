@@ -715,7 +715,7 @@ class ExistingAssetsTab(QWidget):
 
         # Check for connected device
         try:
-            kwargs = {'capture_output': True, 'text': True}
+            kwargs = {'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'replace'}
             if sys.platform == 'win32':
                 kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
 
@@ -800,7 +800,7 @@ class ExistingAssetsTab(QWidget):
             self.progress.setFormat(f"{i + 1}/{len(files_to_push)}")
 
             try:
-                kwargs = {'capture_output': True, 'text': True}
+                kwargs = {'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'replace'}
                 if sys.platform == 'win32':
                     kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
 

@@ -8,6 +8,8 @@ import zipfile
 import threading
 import unicodedata
 import subprocess
+from game_data_processor import DatFileProcessor, get_downloaded_dats_directory
+from rdb_game_data import RDBGameData
 from io import BytesIO
 from pathlib import Path
 from typing import Dict, List, Optional, Any, Tuple
@@ -22,11 +24,153 @@ from PIL import Image, ImageOps, ImageChops, ImageFilter
 from iisu_image_utils import safe_load_image
 
 
+
 def _get_subprocess_flags():
     """Get platform-specific subprocess flags to hide console on Windows."""
     if sys.platform == 'win32':
-        return {'creationflags': subprocess.CREATE_NO_WINDOW}
+        return {
+            'creationflags': subprocess.CREATE_NO_WINDOW,
+            'encoding': 'utf-8',
+            'errors': 'replace'  # Replace undecodable characters instead of raising error
+        }
     return {}
+
+
+def _get_crc32_from_adb(device_id: str, rom_path: str) -> Optional[str]:
+    """通过 ADB 远程计算安卓设备上文件的 CRC32 值
+
+    Args:
+        device_id: ADB 设备 ID
+        rom_path: 设备上的 ROM 文件路径（如 /sdcard/Roms/GB/仓库番2(英).gb）
+
+    Returns:
+        CRC32 值（大写十六进制字符串），如果失败则返回 None
+    """
+    import shutil
+    import zlib
+
+    # 获取 ADB 路径
+    adb_path = shutil.which("adb")
+    if not adb_path:
+        print("[DEBUG] ADB not found in PATH")
+        return None
+
+    def _run_adb_shell(cmd: str, timeout: int = 30) -> Optional[str]:
+        """Run adb shell command and return stdout."""
+        try:
+            result = subprocess.run(
+                [adb_path, "-s", device_id, "shell", cmd],
+                capture_output=True,
+                timeout=timeout,
+                encoding='utf-8',
+                errors='replace',
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                return result.stdout.strip()
+        except subprocess.TimeoutExpired:
+            print(f"[DEBUG] ADB timeout: {cmd[:80]}")
+        except Exception:
+            pass
+        return None
+
+    try:
+        # 方法1: 使用 toybox crc32（安卓 6.0+ 自带，标准 CRC32）
+        # 输出格式通常是 "CRC32值"（1 字段），也可能是 "文件名 CRC32值"（2 字段）
+        output = _run_adb_shell(f"toybox crc32 '{rom_path}'", timeout=30)
+        if output:
+            parts = output.split()
+            for p in parts:
+                candidate = p.upper()
+                if len(candidate) == 8 and all(c in '0123456789ABCDEF' for c in candidate):
+                    print(f"[DEBUG] Got CRC32 via toybox crc32: {candidate}")
+                    return candidate
+
+        # 方法2: 尝试直接用 crc32 命令
+        output = _run_adb_shell(f"crc32 '{rom_path}'", timeout=30)
+        if output:
+            parts = output.split()
+            for p in parts:
+                candidate = p.upper()
+                if len(candidate) == 8 and all(c in '0123456789ABCDEF' for c in candidate):
+                    print(f"[DEBUG] Got CRC32 via crc32 cmd: {candidate}")
+                    return candidate
+
+        # 方法3: 尝试 busybox crc32
+        output = _run_adb_shell(f"busybox crc32 '{rom_path}'", timeout=30)
+        if output:
+            parts = output.split()
+            for p in parts:
+                candidate = p.upper()
+                if len(candidate) == 8 and all(c in '0123456789ABCDEF' for c in candidate):
+                    print(f"[DEBUG] Got CRC32 via busybox: {candidate}")
+                    return candidate
+
+        # 方法4: 通过 adb exec-out cat 流式传输到本地计算 CRC32
+        # 不写临时文件，大文件也能处理，只比远程命令多花传输时间
+        print(f"[DEBUG] Streaming via adb exec-out cat for CRC32...")
+        try:
+            cat_proc = subprocess.Popen(
+                [adb_path, "-s", device_id, "exec-out", f"cat '{rom_path}'"],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.DEVNULL,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+            )
+            crc32_value = 0
+            while True:
+                chunk = cat_proc.stdout.read(65536)
+                if not chunk:
+                    break
+                crc32_value = zlib.crc32(chunk, crc32_value)
+            cat_proc.wait(timeout=300)
+            if cat_proc.returncode == 0:
+                crc_hex = format(crc32_value & 0xFFFFFFFF, '08X')
+                print(f"[DEBUG] Got CRC32 via adb exec-out cat: {crc_hex}")
+                return crc_hex
+        except Exception as e:
+            print(f"[DEBUG] adb exec-out cat failed: {e}")
+
+        print(f"[DEBUG] All remote CRC commands failed, using adb pull fallback for {rom_path}...")
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.tmp') as tmp_file:
+            tmp_path = tmp_file.name
+
+        try:
+            pull_result = subprocess.run(
+                [adb_path, "-s", device_id, "pull", rom_path, tmp_path],
+                capture_output=True,
+                timeout=300,
+                creationflags=subprocess.CREATE_NO_WINDOW if sys.platform == 'win32' else 0
+            )
+
+            if pull_result.returncode == 0:
+                crc32_value = 0
+                with open(tmp_path, 'rb') as f:
+                    while True:
+                        chunk = f.read(65536)
+                        if not chunk:
+                            break
+                        crc32_value = zlib.crc32(chunk, crc32_value)
+
+                crc_hex = format(crc32_value & 0xFFFFFFFF, '08X')
+                print(f"[DEBUG] Got CRC32 via adb pull: {crc_hex}")
+                return crc_hex
+            else:
+                stderr = pull_result.stderr.decode('utf-8', errors='replace')[:200] if pull_result.stderr else ''
+                print(f"[DEBUG] adb pull failed: {stderr}")
+        finally:
+            try:
+                os.unlink(tmp_path)
+            except:
+                pass
+
+        print(f"[DEBUG] All CRC32 methods failed for {rom_path}")
+        return None
+
+    except Exception as e:
+        print(f"[DEBUG] Error calculating CRC32 via ADB: {e}")
+        return None
 
 # Import search utilities from rom_parser
 try:
@@ -3562,8 +3706,67 @@ def run_job(
     border_path_override: Optional[str] = None,
     sgdb_game_id: Optional[int] = None,
     device_id: Optional[str] = None,
-    game_relative_path: Optional[str] = None
+    game_relative_path: Optional[str] = None,
+    game_rom_path: Optional[str] = None
 ) -> Tuple[bool, str]:
+
+    # 根据 device_id + game_rom_path 获取文件的 CRC32 值，然后转换为刮削英文名称
+    scrapername = None
+    crc32_value = None
+
+    if game_rom_path:
+        # 如果有 device_id，通过 ADB 获取 CRC32
+        if device_id:
+            crc32_value = _get_crc32_from_adb(device_id, game_rom_path)
+            if crc32_value:
+                print(f"[DEBUG] Got CRC32 from ADB: {crc32_value} for {game_rom_path}")
+        else:
+            # 本地文件 CRC32 计算
+            try:
+                import zlib
+                with open(game_rom_path, 'rb') as f:
+                    crc32_value = format(zlib.crc32(f.read()) & 0xFFFFFFFF, '08X')
+                print(f"[DEBUG] Got CRC32 from local file: {crc32_value} for {game_rom_path}")
+            except FileNotFoundError:
+                print(f"[DEBUG] Local ROM file not found: {game_rom_path}")
+            except PermissionError:
+                print(f"[DEBUG] Permission denied reading local ROM file: {game_rom_path}")
+            except Exception as e:
+                print(f"[DEBUG] Error calculating local CRC32: {e}")
+
+        if crc32_value:
+            # 先从 DAT 数据库（emugif.com）查询
+            processor = DatFileProcessor(get_downloaded_dats_directory())
+            reorganized_data = processor.get_dat_info()
+            if reorganized_data is not None:
+                games_by_crc = reorganized_data.get("games_by_crc", {})
+                if games_by_crc:
+                    game = games_by_crc.get(crc32_value)
+                    if isinstance(game, list):
+                        game = game[0]
+                    if game:
+                        scrapername = game.get("scrapername")
+
+            # DAT 库未命中，再查 RDB 数据库
+            if scrapername is None:
+                rdb_data = RDBGameData()
+                game_info = rdb_data.get_by_crc(crc32_value)
+                if game_info:
+                    scrapername = game_info.get("scrapername")
+
+            # 如果 CRC 在两个数据库都没命中，打印日志
+            if scrapername is None:
+                print(f"[WARN] CRC32 {crc32_value} not found in DAT or RDB databases for {game_rom_path}")
+            else:
+                print(f"[INFO] CRC32 {crc32_value} -> scrapername: {scrapername}")
+
+                # 只有用户没有手动指定搜索词时，才用 CRC 查到的标准英文名
+                #if not search_term:
+                search_term = scrapername
+                print(f"[INFO] Using CRC-derived search term: {search_term}")
+        else:
+            print(f"[DEBUG] Could not compute CRC32 for {game_rom_path}")
+        # end
 
     config_path = Path(config_path)
     root = config_path.resolve().parent

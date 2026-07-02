@@ -54,13 +54,14 @@ class GameCardWidget(QFrame):
     context_menu_requested = Signal(object, object)  # Emits (self, QPoint global_pos)
 
     def __init__(self, title: str, path: str, platform: str, icon_path: Optional[Path] = None,
-                 relative_path: Optional[str] = None, parent=None):
+                 relative_path: Optional[str] = None, rom_path: str = "", parent=None):
         super().__init__(parent)
         self.title = title
         self.path = path
         self.platform = platform
         self.icon_path = icon_path
         self.relative_path = relative_path  # Path from platform dir to game's parent (for deep search)
+        self.rom_path = rom_path  # ROM source file path
         self._selected = False
 
         # Asset status flags
@@ -724,6 +725,10 @@ class ROMBrowserTab(QWidget):
         self.logo_settings = {"scrape_logos": True, "fallback_to_boxart": True}  # Logo/title settings
         self.hidden_titles = {}  # Hidden titles by platform: {platform: [title1, title2, ...]}
 
+        # ROM source path tracking: assets_game_path -> rom_file_path
+        self._rom_source_paths = {}  # {"/sdcard/iisu/consoles/GB/Pokemon": "/sdcard/Roms/GB/Pokemon.gb"}
+        self._iisu_game_info = {}  # Store extended game info (path -> {has_icon, has_hero, rom_path})
+        
         self._setup_ui()
         self._load_settings()
 
@@ -1445,7 +1450,7 @@ if ($device) {{
                     script_path = f.name
 
                 # Hide console window on Windows
-                run_kwargs = {'capture_output': True, 'text': True, 'timeout': 60}
+                run_kwargs = {'capture_output': True, 'text': True, 'timeout': 60, 'encoding': 'utf-8', 'errors': 'replace'}
                 if sys.platform == 'win32':
                     run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
                 result = subprocess.run(
@@ -1580,7 +1585,7 @@ if ($device) {{
             QMetaObject.invokeMethod(self, "_on_platform_scanned",
                                     QtCore_Qt.QueuedConnection,
                                     Q_ARG(str, platform_key),
-                                    Q_ARG(object, games))
+                                    Q_ARG('QVariant', games))
 
         def emit_progress(msg):
             QMetaObject.invokeMethod(self, "_on_scan_progress",
@@ -1590,7 +1595,7 @@ if ($device) {{
         def emit_finished(results, msg):
             QMetaObject.invokeMethod(self, "_on_scan_finished",
                                     QtCore_Qt.QueuedConnection,
-                                    Q_ARG(object, results),
+                                    Q_ARG('QVariant', results),
                                     Q_ARG(str, msg))
 
         def emit_error(msg):
@@ -1604,7 +1609,7 @@ if ($device) {{
         worker.scan_error.connect(emit_error)
         worker.run()
 
-    @Slot(str, object)
+    @Slot(str, 'QVariant')
     def _on_platform_scanned(self, platform_key: str, games: list):
         """Handle a platform being scanned - add it to the tree immediately."""
         if not games:
@@ -1634,7 +1639,7 @@ if ($device) {{
         """Handle scan progress update."""
         self.status_label.setText(message)
 
-    @Slot(object, str)
+    @Slot('QVariant', str)
     def _on_scan_finished(self, results: dict, message: str):
         """Handle scan completion."""
         self._scan_results = results
@@ -1760,8 +1765,13 @@ if ($device) {{
                         print(f"[DEBUG] MATCHED game '{title}' with device icon: {icon_stem}")
                     break
 
+            # Get ROM source path from _iisu_game_info
+            rom_path = ""
+            if self._iisu_game_info and str(path) in self._iisu_game_info:
+                rom_path = self._iisu_game_info[str(path)].get("rom_path", "")
+            
             # Create game card widget (pass relative_path for deep search support)
-            card = GameCardWidget(title, str(path), platform_key, icon_path, relative_path)
+            card = GameCardWidget(title, str(path), platform_key, icon_path, relative_path, rom_path)
             card.clicked.connect(self._on_card_clicked)
             card.double_clicked.connect(self._on_card_double_clicked)
             card.selection_changed.connect(self._on_card_selection_changed)
@@ -3125,7 +3135,8 @@ if ($device) {{
                     "title": card.title,
                     "path": card.path,
                     "platform": card.platform,
-                    "relative_path": card.relative_path  # For deep search support
+                    "relative_path": card.relative_path,  # For deep search support
+                    "rom_path": card.rom_path
                 })
         return selected
 
@@ -3248,7 +3259,8 @@ if ($device) {{
                             logo_fallback_to_boxart=self.logo_settings.get("fallback_to_boxart", True),
                             sgdb_game_id=custom_sgdb_id,  # Use specific SGDB game ID if provided
                             device_id=device_id_for_copy,  # Pass device ID for ADB push
-                            game_relative_path=relative_path  # For deep search: include subdirectory in output path
+                            game_relative_path=relative_path,  # For deep search: include subdirectory in output path
+                            game_rom_path=game_info.get("rom_path", None)
                         )
 
                         done_count += 1
@@ -3700,11 +3712,14 @@ if ($device) {{
 
                 try:
                     from device_asset_dialog import RomFolderSyncThread, get_subprocess_kwargs as _get_kwargs, list_device_directory, check_path_is_directory
+                    adb_path = get_adb_path()
+                    if not adb_path:
+                        raise Exception("ADB not found")
                     # Run sync synchronously (in the main thread for simplicity in the dialog)
                     sync = RomFolderSyncThread(adb_path, rom_source_path, assets_path)
                     # Run the sync thread and wait for it
                     sync.start()
-                    sync.wait(timeout=120000)  # 2 minute timeout
+                    sync.wait(120000)  # 2 minute timeout
                     self.status_label.setText(i18n.tr("Folder sync complete. Scanning assets..."))
                     QApplication.processEvents()
                 except Exception as e:
@@ -3720,7 +3735,7 @@ if ($device) {{
             self.games_list.clear()
 
             # Perform ADB scan of iiSU assets folder
-            results = self._scan_iisu_assets_via_adb(device_id, assets_path)
+            results = self._scan_iisu_assets_via_adb(device_id, assets_path, rom_source_path)
 
             # Re-enable buttons
             self.btn_adb_scan.setEnabled(True)
@@ -3785,7 +3800,123 @@ if ($device) {{
                 self.platform_tree.setCurrentItem(first_item)
                 self._on_platform_selected(first_item, 0)
 
-    def _scan_iisu_assets_via_adb(self, device_id: str, assets_path: str) -> Dict[str, List[Tuple[str, str]]]:
+    def _scan_rom_source_paths(self, device_id: str, assets_path: str, rom_source_path: str):
+        """Scan ROM source directory and build mapping from assets game path to ROM file path.
+        
+        This populates self._rom_source_paths with:
+            {assets_game_path: rom_file_path}
+        
+        For example:
+            {"/sdcard/iisu/consoles/GB/Pokemon": "/sdcard/Roms/GB/Pokemon.gb"}
+        """
+        import subprocess
+        from rom_parser import FOLDER_TO_PLATFORM, ROM_EXTENSIONS, get_all_rom_extensions, PLATFORM_TO_IISU_FOLDER
+        
+        adb_path = get_adb_path()
+        if not adb_path:
+            return
+        
+        print(f"[DEBUG] Scanning ROM source paths: {rom_source_path}")
+        
+        # Get all ROM extensions
+        all_rom_exts = get_all_rom_extensions()
+        
+        # Prioritize common ROM extensions (put them first)
+        priority_exts = ['.gb', '.gbc', '.gba', '.nes', '.sfc', '.smc', '.n64', '.z64', '.v64', 
+                         '.iso', '.bin', '.cue', '.chd', '.nds', '.3ds', '.cia', '.psp', '.cso',
+                         '.nsp', '.xci', '.wbfs', '.gcm', '.rvz']
+        # Sort: priority first, then remaining alphabetically
+        sorted_exts = sorted([e for e in all_rom_exts if e in priority_exts], key=lambda x: priority_exts.index(x) if x in priority_exts else 999)
+        remaining = sorted([e for e in all_rom_exts if e not in priority_exts])
+        all_rom_exts_list = (sorted_exts + remaining)[:30]  # Increase limit to 30
+        ext_patterns = " -o ".join([f'-name "*{ext}"' for ext in all_rom_exts_list])
+        find_cmd = f'find "{rom_source_path}" -type f \\( {ext_patterns} \\) 2>/dev/null'
+        
+        print(f"[DEBUG] ROM extensions used: {all_rom_exts_list}")
+        print(f"[DEBUG] find command: {find_cmd}")
+        
+        try:
+            result = subprocess.run(
+                [adb_path, "-s", device_id, "shell", find_cmd],
+                capture_output=True, text=True, timeout=60, encoding='utf-8', errors='replace',
+                **_get_subprocess_flags()
+            )
+            
+            print(f"[DEBUG] find returncode: {result.returncode}")
+            print(f"[DEBUG] find stdout length: {len(result.stdout)}")
+            if result.stderr:
+                print(f"[DEBUG] find stderr: {result.stderr[:500]}")
+            
+            if result.returncode != 0 or not result.stdout.strip():
+                print(f"[DEBUG] find command failed or no ROMs found")
+                return
+            
+            # Show first few lines for debugging
+            lines = result.stdout.strip().split('\n')
+            print(f"[DEBUG] Found {len(lines)} lines, first 3: {lines[:3]}")
+            
+            # Parse ROM file paths and build mapping
+            for line in result.stdout.strip().split('\n'):
+                rom_path = line.strip()
+                if not rom_path:
+                    continue
+                
+                # Extract platform from path (look for known platform folder names)
+                path_parts = rom_path.split('/')
+                platform_key = None
+                platform_folder_idx = -1
+                
+                for i, part in enumerate(path_parts):
+                    part_lower = part.lower()
+                    if part_lower in FOLDER_TO_PLATFORM:
+                        platform_key = FOLDER_TO_PLATFORM[part_lower]
+                        platform_folder_idx = i
+                        break
+                    # Also check if the folder name directly matches a platform key
+                    upper_part = part.upper().replace("-", "_")
+                    if upper_part in ROM_EXTENSIONS:
+                        platform_key = upper_part
+                        platform_folder_idx = i
+                        break
+                
+                if not platform_key or platform_folder_idx < 0:
+                    print(f"[DEBUG] No platform found for ROM: {rom_path}")
+                    continue
+                
+                # Get game name from ROM file or folder
+                rom_filename = path_parts[-1]  # e.g., "Pokemon.gb"
+                game_name_raw = rom_filename.rsplit('.', 1)[0]  # Remove extension -> "Pokemon"
+                
+                # Clean the game name (remove region tags, etc.)
+                import re
+                game_name_clean = re.sub(r'\s*\([^)]*\)\s*', ' ', game_name_raw)  # Remove (USA), etc.
+                game_name_clean = re.sub(r'\s*\[[^\]]*\]\s*', ' ', game_name_clean)  # Remove [!], etc.
+                game_name_clean = ' '.join(game_name_clean.split()).strip()
+                
+                if not game_name_clean:
+                    continue
+                
+                # Build expected assets game path using iiSU standard folder naming
+                iisu_folder = PLATFORM_TO_IISU_FOLDER.get(platform_key, platform_key.lower())
+                
+                # Store mapping for BOTH raw name and cleaned name
+                # This handles cases where assets folder uses either format
+                assets_path_raw = f"{assets_path}/{iisu_folder}/{game_name_raw}"
+                assets_path_clean = f"{assets_path}/{iisu_folder}/{game_name_clean}"
+                
+                self._rom_source_paths[assets_path_raw] = rom_path
+                if assets_path_raw != assets_path_clean:
+                    self._rom_source_paths[assets_path_clean] = rom_path
+                print(f"[DEBUG] ROM mapping: {assets_path_raw} -> {rom_path}")
+                if assets_path_raw != assets_path_clean:
+                    print(f"[DEBUG] ROM mapping: {assets_path_clean} -> {rom_path}")
+                
+        except subprocess.TimeoutExpired:
+            print(f"[DEBUG] ROM source scan timed out")
+        except Exception as e:
+            print(f"[DEBUG] Error scanning ROM source: {e}")
+
+    def _scan_iisu_assets_via_adb(self, device_id: str, assets_path: str, rom_source_path: str = "") -> Dict[str, List[Tuple[str, str]]]:
         """Scan iiSU assets folder structure via ADB.
 
         Returns dict of platform -> list of (game_title, game_path) tuples
@@ -3802,9 +3933,15 @@ if ($device) {{
 
         results = {}
         self._iisu_game_info = {}  # Store extended info: path -> {has_icon, has_hero, files}
+        self._rom_source_paths = {}  # Store ROM source paths: assets_game_path -> rom_file_path
 
         # Ensure path doesn't have trailing slash
         assets_path = assets_path.rstrip("/")
+        
+        # If ROM source path provided, scan it and build rom_source_paths mapping
+        if rom_source_path:
+            rom_source_path = rom_source_path.rstrip("/")
+            self._scan_rom_source_paths(device_id, assets_path, rom_source_path)
 
         try:
             # Use a single find command to get ALL directories and files in one call
@@ -3818,7 +3955,7 @@ if ($device) {{
 
             if result.returncode != 0 or not result.stdout.strip():
                 # Fallback to simple ls approach if find fails
-                return self._scan_iisu_assets_via_adb_fallback(device_id, assets_path)
+                return self._scan_iisu_assets_via_adb_fallback(device_id, assets_path, rom_source_path)
 
             # Parse find output to build structure
             # Output contains both directories and asset files
@@ -3895,24 +4032,26 @@ if ($device) {{
 
                 for game_name, game_path in games:
                     assets = assets_by_game.get(game_path, set())
-                    if assets:
-                        print(f"[DEBUG] Storing game_path={game_path}, assets={assets}")
+                    rom_path = self._rom_source_paths.get(game_path, "")
+                    if assets or rom_path:
+                        print(f"[DEBUG] Storing game_path={game_path}, assets={assets}, rom_path={rom_path}")
                     self._iisu_game_info[game_path] = {
                         "has_icon": 'icon' in assets or 'slide' in assets,  # slide can serve as icon
                         "has_slide": 'slide' in assets,
                         "has_hero": 'hero' in assets or 'slide' in assets,  # slide can serve as hero
                         "has_logo": 'logo' in assets or 'title' in assets,  # title can serve as logo
                         "has_title": 'title' in assets,
-                        "files": list(assets)
+                        "files": list(assets),
+                        "rom_path": rom_path  # ROM source file path
                     }
 
         except Exception as e:
             print(f"[DEBUG] ADB scan error: {e}")
-            return self._scan_iisu_assets_via_adb_fallback(device_id, assets_path)
+            return self._scan_iisu_assets_via_adb_fallback(device_id, assets_path, rom_source_path)
 
         return results
 
-    def _scan_iisu_assets_via_adb_fallback(self, device_id: str, assets_path: str) -> Dict[str, List[Tuple[str, str]]]:
+    def _scan_iisu_assets_via_adb_fallback(self, device_id: str, assets_path: str, rom_source_path: str = "") -> Dict[str, List[Tuple[str, str]]]:
         """Fallback scan method using ls -R when find command fails."""
         import subprocess
 
@@ -3922,6 +4061,12 @@ if ($device) {{
 
         results = {}
         self._iisu_game_info = {}
+        self._rom_source_paths = {}  # Also initialize here
+        
+        # Scan ROM source paths if provided
+        if rom_source_path:
+            rom_source_path = rom_source_path.rstrip("/")
+            self._scan_rom_source_paths(device_id, assets_path, rom_source_path)
 
         try:
             # List platform folders first
@@ -3964,13 +4109,15 @@ if ($device) {{
                     if line.endswith(':'):
                         # Save previous game info
                         if current_game_path and current_game_name:
+                            rom_path = self._rom_source_paths.get(current_game_path, "")
                             self._iisu_game_info[current_game_path] = {
                                 "has_icon": 'icon' in current_assets or 'slide' in current_assets,
                                 "has_slide": 'slide' in current_assets,
                                 "has_hero": 'hero' in current_assets or 'slide' in current_assets,
                                 "has_logo": 'logo' in current_assets or 'title' in current_assets,
                                 "has_title": 'title' in current_assets,
-                                "files": list(current_assets)
+                                "files": list(current_assets),
+                                "rom_path": rom_path
                             }
 
                         # New directory - check if it's a game folder (depth 1 from platform)
@@ -4003,13 +4150,15 @@ if ($device) {{
 
                 # Save last game info
                 if current_game_path and current_game_name:
+                    rom_path = self._rom_source_paths.get(current_game_path, "")
                     self._iisu_game_info[current_game_path] = {
                         "has_icon": 'icon' in current_assets or 'slide' in current_assets,
                         "has_slide": 'slide' in current_assets,
                         "has_hero": 'hero' in current_assets or 'slide' in current_assets,
                         "has_logo": 'logo' in current_assets or 'title' in current_assets,
                         "has_title": 'title' in current_assets,
-                        "files": list(current_assets)
+                        "files": list(current_assets),
+                        "rom_path": rom_path
                     }
 
                 if games:

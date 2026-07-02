@@ -27,6 +27,8 @@ def get_subprocess_kwargs():
     kwargs = {
         'capture_output': True,
         'text': True,
+        'encoding': 'utf-8',
+        'errors': 'replace',
     }
     if sys.platform == 'win32':
         # Prevent console window from flashing on Windows

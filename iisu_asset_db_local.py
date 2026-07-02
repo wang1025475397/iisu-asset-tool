@@ -316,8 +316,10 @@ class IisuAssetDBLocal:
         """Parse asset type string to enum."""
         type_map = {
             'icon': AssetType.ICON,
+            'iisu_box_art': AssetType.ICON,
             'hero': AssetType.HERO,
             'logo': AssetType.LOGO,
+            'home': AssetType.ICON,
             'soundbyte': AssetType.SOUNDBYTE,
         }
         return type_map.get(type_str.lower())

@@ -30,6 +30,7 @@ import subprocess
 import shutil
 import tempfile
 import i18n
+import urllib.parse
 
 
 class FlowLayout(QLayout):
@@ -2304,6 +2305,7 @@ class AssetDBTab(QWidget):
         self.status_label.setText(i18n.tr("Downloading assets for {game}...", game=game_name))
 
         signals = self._signals
+        db_session = self.db.session  # Use the DB session for retry + connection pooling
 
         def download_all():
             try:
@@ -2314,7 +2316,13 @@ class AssetDBTab(QWidget):
                     except RuntimeError:
                         pass  # Signal source deleted
 
-                    response = requests.get(url, timeout=30)
+                    # URL-encode any special characters in the path (handles apostrophes, spaces, etc.)
+                    parsed = list(urllib.parse.urlsplit(url))
+                    parsed[2] = urllib.parse.quote(urllib.parse.unquote(parsed[2]))
+                    safe_url = urllib.parse.urlunsplit(parsed)
+
+                    # Use the DB session for retry support and connection pooling
+                    response = db_session.get(safe_url, timeout=30)
                     response.raise_for_status()
 
                     target_path = game_folder / filename
@@ -2326,6 +2334,15 @@ class AssetDBTab(QWidget):
                 except RuntimeError:
                     pass  # Signal source deleted
 
+            except requests.exceptions.SSLError as ssl_err:
+                try:
+                    signals.download_error.emit(
+                        f"SSL connection error — this may be caused by an outdated CA bundle, "
+                        f"antivirus/firewall intercepting the connection, or the server being temporarily unavailable.\n\n"
+                        f"Try: pip install --upgrade certifi\n\n{ssl_err}"
+                    )
+                except RuntimeError:
+                    pass  # Signal source deleted
             except Exception as e:
                 try:
                     signals.download_error.emit(str(e))

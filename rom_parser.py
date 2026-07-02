@@ -14,9 +14,10 @@ from typing import Dict, List, Optional, Set, Tuple, Any
 
 def _get_subprocess_flags():
     """Get platform-specific subprocess flags to hide console on Windows."""
+    flags = {'encoding': 'utf-8', 'errors': 'replace'}
     if sys.platform == 'win32':
-        return {'creationflags': subprocess.CREATE_NO_WINDOW}
-    return {}
+        flags['creationflags'] = subprocess.CREATE_NO_WINDOW
+    return flags
 
 # Common ROM file extensions by platform
 ROM_EXTENSIONS = {
@@ -888,6 +889,7 @@ def _scan_generic_folder_deep(root_path: Path, current_dir: Path,
     """
     Deep scan - recursively searches subdirectories for game folders.
     A directory is considered a game folder if it has ROMs or has no subdirectories (leaf folder).
+    Also handles loose ROM files directly in the scanned folder.
     """
     games: List[Tuple[str, Path, Optional[str]]] = []
 
@@ -899,6 +901,21 @@ def _scan_generic_folder_deep(root_path: Path, current_dir: Path,
     if not current_dir.exists() or not current_dir.is_dir():
         return games
 
+    seen_titles: Set[str] = set()
+
+    # First, scan loose ROM files at the current level
+    for item in current_dir.iterdir():
+        if not item.is_file():
+            continue
+        if is_non_rom_file(item):
+            continue
+        if item.suffix.lower() in valid_exts or is_archive_file(item):
+            game_title = clean_game_title(item.stem)
+            if game_title and game_title.lower() not in seen_titles:
+                seen_titles.add(game_title.lower())
+                games.append((game_title, item, relative_path))
+
+    # Then, recurse into subdirectories
     for item in current_dir.iterdir():
         if not item.is_dir():
             continue
@@ -922,7 +939,8 @@ def _scan_generic_folder_deep(root_path: Path, current_dir: Path,
         if has_roms:
             # This is a game folder - relative_path is the path to its parent
             game_title = clean_game_title(item.name)
-            if game_title:
+            if game_title and game_title.lower() not in seen_titles:
+                seen_titles.add(game_title.lower())
                 games.append((game_title, item, relative_path))
         elif has_subdirs:
             # Has subdirs without ROMs - recurse into it (it's a category folder)

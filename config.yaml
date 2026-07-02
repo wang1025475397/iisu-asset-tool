@@ -39,14 +39,16 @@ device_copy:
   path: /sdcard/Android/media/com.iisulauncher/iiSULauncher/assets/media/roms/consoles
 export_format: PNG
 fallback_icons:
-  use_platform_icon_fallback: true
-  skip_scraping_use_platform_icon: false
   fallback_icons_path: ''
+  skip_scraping_use_platform_icon: false
+  use_platform_icon_fallback: true
 hero_images:
-  enabled: true
   count: 1
+  enabled: true
   save_with_icons: true
 hidden_titles:
+  GAME_BOY:
+  - "\u4ED3\u5E93\u756A1(\u82F1)"
   SWITCH:
   - .nsz_temp_1763708578470
   - .nsz_temp_1763697426701
@@ -146,8 +148,8 @@ logo_detection:
   - libretro_boxart
   - steamgriddb_square
 logos:
-  scrape_logos: true
   fallback_to_boxart: true
+  scrape_logos: true
 output_size: 1024
 paths:
   borders_dir: ./borders
@@ -396,18 +398,18 @@ platforms:
     type: console
     year: 2005
 processing:
-  workers: 3
   limit: 0
+  workers: 3
 rom_directory:
-  mode: manual
-  rom_path: ''
-  auto_detect: false
-  remember_last_path: true
-  deep_search: true
   android_apps_path: /storage/emulated/0/Android/media/com.iisulauncher/iiSULauncher/assets/media/android/apps
+  auto_detect: false
+  deep_search: true
+  mode: remembered
+  remember_last_path: true
+  rom_path: E:/iisu-rom/GB
 screenshots:
-  enabled: true
   count: 1
+  enabled: true
 soundbytes:
   enabled: false
   gamerip_only: true
@@ -476,7 +478,7 @@ thegamesdb:
   prefer_image_type: boxart
   request_timeout_seconds: 30
 ui:
-  dark_mode: false
+  dark_mode: true
   language: auto
   last_seen_version: 2.0.1
 updater:
