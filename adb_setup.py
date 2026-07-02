@@ -176,7 +176,7 @@ def download_platform_tools(
 
         # Test ADB
         try:
-            run_kwargs = {'capture_output': True, 'text': True, 'timeout': 10}
+            run_kwargs = {'capture_output': True, 'text': True, 'timeout': 10, 'encoding': 'utf-8', 'errors': 'replace'}
             if sys.platform == 'win32':
                 run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
             result = subprocess.run(

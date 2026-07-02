@@ -451,7 +451,7 @@ class ExistingAssetsTab(QWidget):
         icons = []
 
         # Prepare subprocess kwargs for Windows
-        run_kwargs = {'capture_output': True, 'text': True}
+        run_kwargs = {'capture_output': True, 'text': True, 'encoding': 'utf-8', 'errors': 'replace'}
         if sys.platform == 'win32':
             run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
 

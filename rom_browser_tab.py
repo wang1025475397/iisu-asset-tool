@@ -317,7 +317,13 @@ class ScanWorker(QObject):
 
                     if adb_devices:
                         self.scan_progress.emit(i18n.tr("Scanning via ADB..."))
-                        adb_path = subfolder.replace("Internal shared storage", "/sdcard").replace("Internal Storage", "/sdcard")
+                        # Handle both English and Chinese (and other locale) device storage names
+                        adb_path = subfolder
+                        for storage_name in ["Internal shared storage", "Internal Storage",
+                                              "内部共享存储空间", "内部存储空间", "內部儲存空間",
+                                              "Mémoire de stockage interne", "Interner gemeinsamer Speicher",
+                                              "Almacenamiento interno compartido", "Armazenamento interno compartilhado"]:
+                            adb_path = adb_path.replace(storage_name, "/sdcard")
                         if not adb_path.startswith("/"):
                             adb_path = f"/sdcard/{adb_path}" if adb_path else "/sdcard/roms"
                         device_id = adb_devices[0][0] if len(adb_devices) == 1 else ""
@@ -1397,6 +1403,8 @@ class ROMBrowserTab(QWidget):
             # PowerShell script to list folder contents - optimized to only list folders first
             # and limit to first 100 items to prevent timeouts
             ps_script = f'''
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = "SilentlyContinue"
 $s = New-Object -ComObject Shell.Application
 $thispc = $s.NameSpace(17)
@@ -1449,8 +1457,9 @@ if ($device) {{
                     f.write(ps_script)
                     script_path = f.name
 
-                # Hide console window on Windows
-                run_kwargs = {'capture_output': True, 'text': True, 'timeout': 60, 'encoding': 'utf-8', 'errors': 'replace'}
+                # Hide console window on Windows - use bytes mode and decode manually
+                # to handle encoding issues with Chinese/UTF-8 PowerShell output
+                run_kwargs = {'capture_output': True, 'timeout': 60}
                 if sys.platform == 'win32':
                     run_kwargs['creationflags'] = subprocess.CREATE_NO_WINDOW
                 result = subprocess.run(
@@ -1461,6 +1470,16 @@ if ($device) {{
                 import os
                 os.unlink(script_path)
 
+                # Decode output: try UTF-8 first (PowerShell script sets UTF-8 encoding),
+                # fall back to system locale encoding (e.g., GBK on Chinese Windows)
+                raw_output = result.stdout
+                try:
+                    output_text = raw_output.decode('utf-8')
+                except UnicodeDecodeError:
+                    import locale
+                    sys_enc = locale.getpreferredencoding(False)
+                    output_text = raw_output.decode(sys_enc, errors='replace')
+
                 # Remove loading indicator
                 tree.clear()
                 if folder_path:
@@ -1470,8 +1489,8 @@ if ($device) {{
 
                 path_label.setText(i18n.tr("Current path: /{path}", path=folder_path) if folder_path else i18n.tr("Current path: /"))
 
-                if result.returncode == 0 and result.stdout.strip():
-                    for line in result.stdout.strip().split('\n'):
+                if result.returncode == 0 and output_text.strip():
+                    for line in output_text.strip().split('\n'):
                         if '|' in line:
                             name, item_type = line.rsplit('|', 1)
                             item = QTreeWidgetItem([name.strip(), item_type.strip()])

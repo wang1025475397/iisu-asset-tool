@@ -1202,6 +1202,8 @@ def scan_mtp_device(device_name: str, subfolder: str = "", max_items_per_folder:
         # 2. Limit to first N platforms and M items per platform
         # 3. Use Select-Object -First for early termination
         ps_script = f'''
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 $ErrorActionPreference = "SilentlyContinue"
 $s = New-Object -ComObject Shell.Application
 $thispc = $s.NameSpace(17)
@@ -1428,6 +1430,8 @@ def get_portable_devices() -> List[Tuple[str, str]]:
         # Create a PowerShell script to get portable devices with their shell paths
         # Using raw string to avoid Python escape sequence issues
         ps_script = r'''
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
 $s = New-Object -ComObject Shell.Application
 $n = $s.NameSpace(17)
 $n.Items() | ForEach-Object {
@@ -1439,7 +1443,7 @@ $n.Items() | ForEach-Object {
 }
 '''
         # Write script to temp file to avoid shell escaping issues
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.ps1', delete=False) as f:
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.ps1', delete=False, encoding='utf-8') as f:
             f.write(ps_script)
             script_path = f.name
 

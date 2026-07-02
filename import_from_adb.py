@@ -95,7 +95,7 @@ def adb_pull(remote, local):
     """Pull a file from device. Returns True on success."""
     result = subprocess.run(
         ['adb', 'pull', remote, str(local)],
-        capture_output=True, text=True, timeout=60
+        capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=60
     )
     return result.returncode == 0
 
